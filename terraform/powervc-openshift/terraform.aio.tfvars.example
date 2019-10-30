@@ -1,0 +1,79 @@
+####################################################
+# VARIABLES Values
+####################################################
+
+#PowerVC (OpenStack)
+#---------------------------------
+powervc_user        = "ocpadmin"            # PowerVC user
+powervc_password    = "<password>"          # PowerVC password
+powervc_server      = "X.X.X.X"             # PowerVC IP or hostname
+powervc_project     = "ocp-project"         # PowerVC project(tenant) name, default is ibm-default
+
+
+#General configuration:
+#---------------------------------
+ssh_user            = "root"                # Image username
+ssh_user_password   = "<password>"          # Image password
+user_public_key     = "ssh-rsa XXXXX"       # Your public SSH key for uploading to the VMs
+dns1                = "X.X.X.X"             # DNS server 1
+dns_domain          = "domain.example.com"  # DNS Domain Name
+
+#Network configuration
+#---------------------------------
+net1_name           = "net_ocp_cluster1"    # Network Name
+net1_vlan_id        = "1"                   # VLAN ID
+net1_subnet         = "9.108.96.0/21"       # Network/Mask 
+net1_gateway        = "9.108.96.1"          # Gateway
+net1_start          = "9.108.97.223"        # First IP from Pool
+net1_end            = "9.108.97.223"        # Last IP from Pool
+
+#VM1 configuration (OCP - Master Nodes)
+#---------------------------------
+vm1_number         = "1"                    # Number of VMs
+vm1_memory         = "32"                   # Memory GB
+vm1_cpu            = "8"                    # Virtual CPU
+vm1_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm1_name           = "bsocp"                # Hostname prefix
+vm1_first_ip       = "9.108.97.223"         # Fist IP from a consecutive pool of IPs
+vm1_image_name     = "xiv_p9_image_rhel76"  # The image name
+vm1_remote_restart = "true"                 # Enable Auto Remote Restart
+vm1_storage_name   = "xiv_StoragePool"      # Storage Template
+vm1_dockerdisk1    = "0"                    # Docker disk size in GB for ephemeral storage
+
+
+#VM2 configuration (OCP - Infra Nodes)
+#---------------------------------
+vm2_number         = "0"                    # Number of VMs
+vm2_memory         = "16"                   # Memory GB
+vm2_cpu            = "4"                    # Virtual CPU
+vm2_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm2_name           = "infnode"              # Hostname prefix
+vm2_first_ip       = "X.X.X.X"              # Fist IP from a consecutive pool of IPs
+vm2_image_name     = "xiv_p9_image_rhel76"  # The image name
+vm2_remote_restart = "true"                 # Enable Auto Remote Restart
+vm2_storage_name   = "xiv_StoragePool"      # Storage Template
+vm2_dockerdisk1    = "68"                   # Docker disk size in GB for ephemeral storage
+
+#VM3 configuration (OCP - Workers(App) Nodes)
+#---------------------------------
+vm3_number         = "0"                    # Number of VMs
+vm3_memory         = "32"                   # Memory GB
+vm3_cpu            = "4"                    # Virtual CPU
+vm3_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm3_name           = "appnode"              # Hostname prefix
+vm3_first_ip       = "X.X.X.X"              # Fist IP from a consecutive pool of IPs
+vm3_image_name     = "xiv_p9_image_rhel76"  # The image name
+vm3_remote_restart = "false"                # Disable Auto Remote Restart
+vm3_storage_name   = "xiv_StoragePool"      # Storage Template
+vm3_dockerdisk1    = "34"                   # Docker disk size in GB for ephemeral storage
+
+#VM4 configuration (OCP - Load Balancer Node)
+#---------------------------------
+vm4_number         = "0"                    # Number of VMs
+vm4_memory         = "8"                    # Memory GB
+vm4_cpu            = "2"                    # Virtual CPU
+vm4_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm4_name           = "lbsnode"              # Hostname prefix
+vm4_first_ip       = "X.X.X.X"              # Fist IP from a consecutive pool of IPs
+vm4_image_name     = "xiv_p9_image_rhel76"  # The image name
+vm4_remote_restart = "true"                 # Enable Auto Remote Restart

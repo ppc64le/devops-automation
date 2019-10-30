@@ -1,0 +1,116 @@
+##-----------------------------------------------------------------------##
+## All-in-One(AIO):
+##-----------------------------------------------------------------------##
+
+[OSEv3:vars]
+##-----------------------------------------------------------------------##
+## Ansible Vars
+##-----------------------------------------------------------------------##
+timeout=60
+# ansible_user={{CHANGEME_ANSIBLE_SSH_USER}}
+ansible_user=root
+
+##-----------------------------------------------------------------------##
+## OpenShift Basic Vars
+##-----------------------------------------------------------------------##
+# Deployment type
+openshift_deployment_type=openshift-enterprise
+# WARNING: only disable these checks in LAB/TEST environments
+# openshift_disable_check="disk_availability,memory_availability"
+# OpenShift Version:
+openshift_release=3.11
+# firewalld recommended for new installations (default is iptables)
+os_firewall_use_firewalld=true
+
+##-----------------------------------------------------------------------##
+## OpenShift Registries Locations
+##-----------------------------------------------------------------------##
+# NOTE: Need credentials from: https://access.redhat.com/terms-based-registry/
+oreg_url=registry.redhat.io/openshift3/ose-${component}:${version}
+oreg_auth_user={{CHANGEME_REGISTRY_SERVICE_ACCOUNT}}
+oreg_auth_password={{CHANGEME_SERVICE_KEY}}
+# NOTE: accept insecure registries and registries with self-signed certs
+# setup for lab environment
+openshift_docker_hosted_registry_insecure=true
+
+
+##-----------------------------------------------------------------------##
+## OpenShift Master Vars
+##-----------------------------------------------------------------------##
+openshift_master_api_port=8443
+openshift_master_console_port=8443
+# Native high availbility cluster method with optional load balancer.
+# If no lb group is defined installer assumes that a load balancer has
+# been preconfigured. For installation the value of
+# openshift_master_cluster_hostname must resolve to the load balancer
+# or to one or all of the masters defined in the inventory if no load
+# balancer is present.
+openshift_master_cluster_method=native
+# Internal cluster name
+openshift_master_cluster_hostname=ocp01.example.com
+# External cluster name
+# openshift_master_cluster_public_hostname=ocp-ext.example.com
+# Default wildcard domain for applications
+openshift_master_default_subdomain=apps.example.com
+
+##-----------------------------------------------------------------------##
+## OpenShift Authentication Vars
+##-----------------------------------------------------------------------##
+# Available Identity Providers
+# https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html
+##---------------------##
+# htpasswd Authentication
+##---------------------##
+# NOTE: read initial identities in htpasswd format from /root/htpasswd.openshift
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
+# To define initial users directly in the inventory file:
+# Note: https://docs.openshift.com/container-platform/3.3/admin_solutions/master_node_config.html#htpasswd
+openshift_master_htpasswd_users={'admin':'$apr1$hYehsOQ6$DQWSmGhPdS2LzS5cDJuU21','developer':'$apr1$I0a9K2v0$ZLPrXnQseMlwTJIYzM8Hd.'}
+# To use external htpassword file:
+# openshift_master_htpasswd_file=/root/htpasswd.openshift
+
+##-----------------------------------------------------------------------##
+## OpenShift Cockpit Vars and plugins
+##-----------------------------------------------------------------------##
+# Disable cockpit
+osm_use_cockpit=false
+
+
+##-----------------------------------------------------------------------##
+## Docker Vars
+##-----------------------------------------------------------------------##
+# container_runtime_docker_storage_setup_device=/dev/mapper/DOCKER_DISK_1
+# container_runtime_docker_storage_type=overlay2
+
+
+##-----------------------------------------------------------------------##
+## OpenShift Network Vars
+##-----------------------------------------------------------------------##
+# Defaults
+# osm_cluster_network_cidr=10.1.0.0/16
+# openshift_portal_net=172.30.0.0/16
+# Configure the multi-tenant SDN plugin (default is 'redhat/openshift-ovs-subnet')
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+
+
+##-----------------------------------------------------------------------##
+## OpenShift Hosts
+##-----------------------------------------------------------------------##
+[OSEv3:children]
+nfs
+masters
+etcd
+nodes
+
+[nfs]
+ocp01.example.com
+
+[masters]
+ocp01.example.com
+
+[etcd]
+ocp01.example.com
+
+[nodes]
+## All-In-One with Docker
+ocp01.example.com openshift_node_group_name='node-config-all-in-one' openshift_node_problem_detector_install=true

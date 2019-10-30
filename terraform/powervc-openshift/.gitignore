@@ -1,0 +1,11 @@
+.DS_Store
+terraform.tfvars
+*.tfvars
+*.inv
+terraform.tfstate
+terraform.tfstate.backup
+.ssh
+.chef
+.terraform
+.terraform.tfstate.lock.info
+*.old
