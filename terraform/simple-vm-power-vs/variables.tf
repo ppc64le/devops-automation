@@ -69,6 +69,11 @@ variable "replication_policy" {
     default     = "none"
 }
 
+variable "replication_scheme" {
+    description = "Replication scheme for the VM"
+    default     = "suffix"
+}
+
 variable "replicants" {
     description = "Number of VM instances to deploy"
     default     = "1"
