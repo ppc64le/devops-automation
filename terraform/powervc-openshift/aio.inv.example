@@ -19,16 +19,22 @@ openshift_deployment_type=openshift-enterprise
 # openshift_disable_check="disk_availability,memory_availability"
 # OpenShift Version:
 openshift_release=3.11
+# openshift_pkg_version=-3.11.146
+# openshift_image_tag=v3.11.146
 # firewalld recommended for new installations (default is iptables)
 os_firewall_use_firewalld=true
+# enable ntp on masters to ensure proper failover
+openshift_clock_enabled=true
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Registries Locations
 ##-----------------------------------------------------------------------##
 # NOTE: Need credentials from: https://access.redhat.com/terms-based-registry/
 oreg_url=registry.redhat.io/openshift3/ose-${component}:${version}
-oreg_auth_user={{CHANGEME_REGISTRY_SERVICE_ACCOUNT}}
-oreg_auth_password={{CHANGEME_SERVICE_KEY}}
+# oreg_auth_user={{CHANGEME_REGISTRY_SERVICE_ACCOUNT}}
+# oreg_auth_password={{CHANGEME_SERVICE_KEY}}
+oreg_auth_user=ibm_rhn
+oreg_auth_password=k1ng_pengu1ns
 # NOTE: accept insecure registries and registries with self-signed certs
 # setup for lab environment
 openshift_docker_hosted_registry_insecure=true
@@ -39,19 +45,12 @@ openshift_docker_hosted_registry_insecure=true
 ##-----------------------------------------------------------------------##
 openshift_master_api_port=8443
 openshift_master_console_port=8443
-# Native high availbility cluster method with optional load balancer.
-# If no lb group is defined installer assumes that a load balancer has
-# been preconfigured. For installation the value of
-# openshift_master_cluster_hostname must resolve to the load balancer
-# or to one or all of the masters defined in the inventory if no load
-# balancer is present.
-openshift_master_cluster_method=native
 # Internal cluster name
-openshift_master_cluster_hostname=ocp01.example.com
+openshift_master_cluster_hostname=bsocp01.example.com
 # External cluster name
 # openshift_master_cluster_public_hostname=ocp-ext.example.com
 # Default wildcard domain for applications
-openshift_master_default_subdomain=apps.example.com
+openshift_master_default_subdomain=apps.bs.ibm.com
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Authentication Vars
@@ -74,7 +73,6 @@ openshift_master_htpasswd_users={'admin':'$apr1$hYehsOQ6$DQWSmGhPdS2LzS5cDJuU21'
 ##-----------------------------------------------------------------------##
 # Disable cockpit
 osm_use_cockpit=false
-
 
 ##-----------------------------------------------------------------------##
 ## Docker Vars
@@ -103,14 +101,14 @@ etcd
 nodes
 
 [nfs]
-ocp01.example.com
+bsocp01.example.com
 
 [masters]
-ocp01.example.com
+bsocp01.example.com
 
 [etcd]
-ocp01.example.com
+bsocp01.example.com
 
 [nodes]
 ## All-In-One with Docker
-ocp01.example.com openshift_node_group_name='node-config-all-in-one' openshift_node_problem_detector_install=true
+bsocp01.example.com openshift_node_group_name='node-config-all-in-one' openshift_node_problem_detector_install=true

@@ -32,7 +32,7 @@ net1_end            = "9.108.97.223"        # Last IP from Pool
 vm1_number         = "1"                    # Number of VMs
 vm1_memory         = "32"                   # Memory GB
 vm1_cpu            = "8"                    # Virtual CPU
-vm1_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm1_vcpu_ratio     = "4"                    # vCPU RATIO 1:4 1 vCPU = 0.25 eCPU (cores)
 vm1_name           = "bsocp"                # Hostname prefix
 vm1_first_ip       = "9.108.97.223"         # Fist IP from a consecutive pool of IPs
 vm1_image_name     = "xiv_p9_image_rhel76"  # The image name
@@ -46,7 +46,7 @@ vm1_dockerdisk1    = "0"                    # Docker disk size in GB for ephemer
 vm2_number         = "0"                    # Number of VMs
 vm2_memory         = "16"                   # Memory GB
 vm2_cpu            = "4"                    # Virtual CPU
-vm2_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm2_vcpu_ratio     = "4"                    # vCPU RATIO 1:4 1 vCPU = 0.25 eCPU (cores)
 vm2_name           = "infnode"              # Hostname prefix
 vm2_first_ip       = "X.X.X.X"              # Fist IP from a consecutive pool of IPs
 vm2_image_name     = "xiv_p9_image_rhel76"  # The image name
@@ -59,7 +59,7 @@ vm2_dockerdisk1    = "68"                   # Docker disk size in GB for ephemer
 vm3_number         = "0"                    # Number of VMs
 vm3_memory         = "32"                   # Memory GB
 vm3_cpu            = "4"                    # Virtual CPU
-vm3_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm3_vcpu_ratio     = "4"                    # vCPU RATIO 1:4 1 vCPU = 0.25 eCPU (cores)
 vm3_name           = "appnode"              # Hostname prefix
 vm3_first_ip       = "X.X.X.X"              # Fist IP from a consecutive pool of IPs
 vm3_image_name     = "xiv_p9_image_rhel76"  # The image name
@@ -72,7 +72,7 @@ vm3_dockerdisk1    = "34"                   # Docker disk size in GB for ephemer
 vm4_number         = "0"                    # Number of VMs
 vm4_memory         = "8"                    # Memory GB
 vm4_cpu            = "2"                    # Virtual CPU
-vm4_vcpu_ratio     = "5"                    # vCPU RATIO 1:5 1 vcpu = 0.2 pcpu (cores)
+vm4_vcpu_ratio     = "4"                    # vCPU RATIO 1:4 1 vCPU = 0.25 eCPU (cores)
 vm4_name           = "lbsnode"              # Hostname prefix
 vm4_first_ip       = "X.X.X.X"              # Fist IP from a consecutive pool of IPs
 vm4_image_name     = "xiv_p9_image_rhel76"  # The image name
