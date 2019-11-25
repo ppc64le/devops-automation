@@ -1,8 +1,2 @@
-## oraclient infrastructure
-
-Created 11/19/19 by admin. for oraclient
-
-
-## Design Decisions
-| Design item                | Decision|
-| :----------------------------------- | :--------------------------------------------------------------------------------|
+# IBM Cloud Manager deployment template files for *oraclient*
+This folder can be directly imported into CAM to define the *oraclient* template. This template can not be deployed by itself as it expects as input output values from the deployment of *oradbaas* template.
