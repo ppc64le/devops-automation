@@ -1,0 +1,100 @@
+#!/bin/ksh
+
+#  Copyright: IBM Corp., 2017
+#
+#  Written by: Stephen Poon, Ralf Schmidt-Dannert, IBM
+#              IBM Washington Systems Center, NA - Power Technical Team, Oracle
+#  
+#  Disclaimers:
+#  This script is provided as-is to illustrate Oracle Database as a Service
+#  with IBM PoverVC. This script is not part of any IBM product and has not
+#  undergone extended testing of functionality or "fit for purpose" verification
+#
+#  Legal Stuff:
+#
+#  No Warranty
+#  Subject to any statutory warranties which can not be excluded, IBM makes
+#  no warranties or conditions either express or implied, including without
+#  limitation, the warranty of non-infringement and the implied warranties
+#  of merchantability and fitness for a particular purpose, regarding the
+#  program or technical support, if any.
+#
+#  Limitation of Liability
+#  Neither IBM nor its suppliers will be liable for any direct or indirect
+#  damages, including without limitation, lost profits, lost savings, or any
+#  incidental, special, or other economic consequential damages, even if IBM
+#  is informed of their possibility. Some jurisdictions do not allow the
+#  exclusion or limitation of incidental or consequential damages, so the
+#  above exclusion or limitation may not apply to you.
+#----------------------------------------------------------------------
+#
+#
+#  rc.agent
+#
+#  This script deploys the OEM 12c agent.  
+#  It may be run standalone, but was created to be invoked 
+#    from rc.oracledbaasv3
+#  
+#  Change history: 6/8/2016 srp: new
+#                  8/17/2016 srp: added RCAGENT_VERSION
+#                 
+#
+
+logmsg()
+{
+	echo "** "`date +"%T %m/%d/%y"` `basename $0`: "$1"
+}
+
+#  for debugging
+#set -x
+
+#  source for environment variables
+. $0.cfg
+
+logmsg "starting from `dirname $0`"
+logmsg "version=$RCAGENT_VERSION"
+# ------------------------------------------------------------------
+#  Set up OEM Agent
+#
+#  IMPORTANT:  Deploys 12c OEM agent for the OEM manager in the aop lab
+#              Modify the following parameters for other envirnments
+# ------------------------------------------------------------------
+logmsg "set up OEM Agent"
+
+/usr/bin/chown -R oracle:oinstall $T_WORK
+
+# Execute Agent Clone Steps as user oracle
+
+if [ "$(ls -A $AGENT_BASE_DIR 2> /dev/null)" == "" ]; then
+	logmsg "$AGENT_BASE_DIR is empty so deploying agent."
+	su - oracle -c "$T_WORK/agentDeploy.sh AGENT_BASE_DIR=$AGENT_BASE_DIR OMS_HOST=$OMS_HOST EM_UPLOAD_PORT=$OMS_PORT AGENT_REGISTRATION_PASSWORD=$AGENT_REGISTRATION_PASSWORD -ignorePrereqs"
+	RC=$?
+	if [[ $RC -ne 0 ]]; then
+		logmsg "ERROR with agentDeploy, RC=$RC"
+	fi
+else
+	logmsg "$AGENT_BASE_DIR is not empty so assuming installation was completed prior to now and configurations need to be completed."
+fi
+
+#echo "Stop Agent"
+#su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl stop agent"
+logmsg "Executing the $AGENT_HOME/root.sh"
+sh $AGENT_HOME/root.sh
+RC=$?
+if [[ $RC -ne 0 ]]; then
+	logmsg "ERROR with root.sh, RC=$RC"
+fi
+#echo "Reset the agent timezone"
+#su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl resetTZ agent"
+#echo "Start agent"
+#su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl start agent"
+logmsg "upload agent"
+su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl upload agent"
+RC=$?
+if [[ $RC -ne 0 ]]; then
+	logmsg "ERROR with agent upload, RC=$RC"
+fi
+# --------- end of OEM agent setup----------------------------------
+
+logmsg "ended. Last RC=$RC"
+exit $RC

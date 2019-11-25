@@ -1,0 +1,543 @@
+#!/bin/sh
+
+#  Copyright: IBM Corp., 2017
+#
+#  Written by: Stephen Poon, Ralf Schmidt-Dannert, IBM
+#              IBM Washington Systems Center, NA - Power Technical Team, Oracle
+#  
+#  Disclaimers:
+#  This script is provided as-is to illustrate Oracle Database as a Service
+#  with IBM PoverVC. This script is not part of any IBM product and has not
+#  undergone extended testing of functionality or "fit for purpose" verification
+#
+#  Legal Stuff:
+#
+#  No Warranty
+#  Subject to any statutory warranties which can not be excluded, IBM makes
+#  no warranties or conditions either express or implied, including without
+#  limitation, the warranty of non-infringement and the implied warranties
+#  of merchantability and fitness for a particular purpose, regarding the
+#  program or technical support, if any.
+#
+#  Limitation of Liability
+#  Neither IBM nor its suppliers will be liable for any direct or indirect
+#  damages, including without limitation, lost profits, lost savings, or any
+#  incidental, special, or other economic consequential damages, even if IBM
+#  is informed of their possibility. Some jurisdictions do not allow the
+#  exclusion or limitation of incidental or consequential damages, so the
+#  above exclusion or limitation may not apply to you.
+#----------------------------------------------------------------------
+#
+#
+#  rc.oracledbaasv3
+#  
+#  Change history: 6/8/2016 srp: new
+#                  8/2/2016 srp: moved variables to rc.oracledbaasv3.cfg
+#                  8/9/2016 rsd: Failure to set hostname based on DNS is
+#                                 fatal.
+#                                A little bit of command simplification.
+#                 8/9/2016 srp:  grep for my inittab entry
+#				 add emctl status agent and test result
+#				 first char # in user-data.txt is comment, 
+#                                just log it
+#                  8/11/2016 rsd: Point dbca database template to correct 
+#				  copy in /stage and not /home/oracle
+#                  8/17/2016 srp: use lsitab to find inittab entry
+#                                 add and log version RCDBAAS_VERSION
+#                                 if dbca fails, log the error and continue
+#                                 use `dirname $0` to refer to atsdemo.dbc instead of /stage
+#                  8/18/2016 srp: use hostname without -s for listener.ora
+#                  8/24/2016 rsd: miscellaneous changes
+#		   2/15/2017 srp: changes to incorporate vRA deploys
+#                  2/15/2017 srp: add support for STARTOEM and OEMVERSION
+#                  2/21/2017 srp: return exit code RC at end
+#				  allow db_name or dbname=default, sets db_name to vm name
+#		   4/30/2017 rsd: Changed to reflect v3
+#		   5/1/2017  srp: Add/change OEM log messages
+#		   5/1/2017  srp: was only checking for "no" on the STARTOEM input parameter,
+#	                          test for possible lowercase "yes" or "no" for STARTOEM from .cfg file
+#
+
+logmsg()
+{
+	echo "** "`date +"%T %m/%d/%y"` `basename $0`: "$1"
+}
+
+# for debugging
+#set -x
+
+#  source the cfg file for environment variables
+. $0.cfg
+
+# Initialize exit code RC
+RC=0
+
+logmsg "started from `dirname $0`"
+logmsg "version=$RCDBAAS_VERSION"
+
+# We do this regardless of "abort" or not
+# make iocp0 available
+mkdev -l iocp0
+# make iocp0 persistent
+chdev -l iocp0 -P -a autoconfig='available'
+
+# ---------- Host check ---------------------------------------------
+#
+#    check to see if we are running on the image source 
+#    if so, do not run this script
+# -------------------------------------------------------------------
+#
+# VM_NAME is the vm name 
+# Note:  assumes using cloud-init module set_hostname, not set_hostname_from_dns
+#        in AIX cloud-init modules are specified in 
+#           /opt/freeware/etc/cloud/cloud.cfg 
+# save the vm name in case db_name is not specified
+VM_NAME=`hostname -s`
+CURRENT_HOST=$VM_NAME
+logmsg "current hostname (vm name) is $VM_NAME"
+#
+#  don't run this script on the image source host
+if [[ $CURRENT_HOST = $ORIG_HOST || $CURRENT_HOST = $ORIG_HOST_DNS ]]; then
+	logmsg "this script will not run because "
+	logmsg "hostname is original image source host - $ORIG_HOST or $ORIG_HOST_DNS"
+	logmsg "inittab entry not removed."
+	logmsg "$0 exiting"
+	exit 6
+else
+	logmsg "original image source host is $ORIG_HOST or $ORIG_HOST_DNS (DNS)"
+	logmsg "current host $CURRENT_HOST is not original image source host, continuing.."
+fi
+# ---------- end of host checking -----------------------------------
+
+# ---------- monitor for PARM FILE -------------------------------
+
+#
+#  Code looks for $PARM_FILE, aka Trigger file
+#  
+#  The trigger file is written by either
+#     rc.initdbaas (from cloud-init's /opt/freeware/var/lib/cloud/instance/user-data.txt)
+#     VMware Realize Automation / VMware Realize Orchestrator
+#
+DONE=false
+MAXLOOP=60
+LOOPDELAY=5
+i=1
+while [[ $DONE = false && $i -le $MAXLOOP ]] ; do
+        if [[ -f $PARM_FILE ]]; then
+                logmsg "Trigger file, $PARM_FILE found"
+                DONE=true
+        else
+		if [[ $i -eq 1 ]]; then
+			logmsg "waiting for Trigger file"
+		fi
+                sleep $LOOPDELAY
+        fi
+        i=$(( $i + 1 ))
+done
+if [[ $i -gt $MAXLOOP ]]; then
+	logmsg "Trigger file - $PARM_FILE not found within timeout period"
+
+#       loop timed out, likely not a vRA deploy
+#       this creates a dummy PARM_FILE for later processing
+	touch $PARM_FILE
+fi
+
+# ---------- Read input parameters from PARM_FILE -------------------
+#
+# For future use, this script will parse multiple parameters (see case statement below)
+# If entered on one line (e.g. SS), use semi-colon for delimiter. Extra spaces are ok.
+#    For example:  db_name=<name>;parm2=<value>
+#
+# current support:
+#   db_name=<name> or dbname=<name>
+#   db name null or unspecified, defaults to vm name, truncated to 8 char
+#       
+# ------------------------------------------------------------------
+
+TMP_PARM_FILE=/tmp/rc_dbaas_user-data.txt
+#  support for more than one parameter, must be separated by ";"
+# cat $PARM_FILE | tr -s ';' '\n' | tr -d ' ' > $TMP_PARM_FILE
+cat $PARM_FILE | tr -s ';' '\n' > $TMP_PARM_FILE
+
+#  read db_name from the tmp file
+#  Note:  the "or" test is here because the last line in user-data.txt does not end with newline
+#  Note: An empty file or unknown parameters are ignored and DBNAME will be left ""
+DBNAME=""
+
+while read PARMDATA || [ -n "$PARMDATA" ]; do 
+
+if [[ ${#PARMDATA} -gt 0 ]]; then
+
+# Special notes:
+#  "abort" upper or lower case, signals this script to exit
+#      without doing anything further
+#  "debug" in upper or lower case will cause execution of set -x
+# 
+#   anything with string of "abort", regardless of case
+	echo $PARMDATA | tr -d ' ' | tr a-z A-Z | grep "ABORT" > /dev/null
+	if [[ $? -eq 0 ]]; then
+		logmsg "abort string in user-data " 
+		logmsg "aborting" 
+		logmsg "inittab entry not removed."
+		exit 6
+	fi
+#   anything with string of "debug", regardless of case
+	echo $PARMDATA | tr -d ' ' | tr a-z A-Z | grep "DEBUG" > /dev/null
+	if [[ $? -eq 0 ]]; then
+		logmsg "setting debug"
+		set -x
+	else
+#	        grab the fields before (f1) and after (f2) the = sign
+		VAR=$(echo ${PARMDATA} | tr -d ' ' | cut -f1 -d= | tr a-z A-Z)
+		VALUE=$(echo ${PARMDATA} | tr -d ' ' | cut -f2 -d=)
+
+		case "$VAR" in
+			"DB_NAME"|"DBNAME")
+			logmsg "got $VAR = $VALUE"
+			if [[ ${#VALUE} -gt 0 ]]; then
+				echo $PARMDATA | tr -d ' ' | tr a-z A-Z | grep "DEFAULT" > /dev/null
+				if [[ $? -eq 0 ]]; then
+					DBNAME=""
+					logmsg "default specified, $VAR will be set to vm name, $VM_NAME"
+				else
+					DBNAME=$VALUE
+					logmsg "$VAR will be set to $VALUE" 
+				fi
+			else
+				logmsg "null value for $VAR, $VAR will be set to vm name, $VM_NAME"
+				DBNAME=""
+			fi
+			;;
+
+			"OEM"|"STARTOEM")
+# 			override cfg setting
+			logmsg "got $VAR = $VALUE"
+			if [[ ${#VALUE} -gt 0 ]]; then
+#				force to uppercase
+				xSTARTOEM=`echo $VALUE | tr a-z A-Z`
+				if [[ $xSTARTOEM = "YES" || $xSTARTOEM = "NO" ]];then
+					STARTOEM=$xSTARTOEM
+					logmsg "STARTOEM set to $STARTOEM"
+				fi
+			fi
+			;;
+
+			"OEMVERSION")
+# 			override cfg setting
+			logmsg "got $VAR = $VALUE"
+			xOEMAGENTSCRIPT=rc.agent$VALUE
+		        if [[ -x `dirname $0`/$xOEMAGENTSCRIPT ]]; then
+				OEMAGENTSCRIPT=rc.agent$VALUE
+				logmsg "OEMAGENTSCRIPT set to $OEMAGENTSCRIPT" 
+			else
+				logmsg "OEM Version $VALUE not currently supported"
+				logmsg "Executable $xOEMAGENTSCRIPT does not exist"
+				logmsg "Current OEMAGENTSCRIPT is $OEMAGENTSCRIPT"
+			fi
+			;;
+
+			*)
+			if [[ `echo $VAR | cut -c 1` = "#" ]]; then
+				logmsg "comment found in input file"
+				logmsg "$PARMDATA"
+			else
+				logmsg "unsupported parameter or format >$PARMDATA< - ignored."
+			fi
+			;;
+		esac
+	fi
+fi
+done < $TMP_PARM_FILE
+# ---------- end of input parameter processing ----------------------
+#
+# ---------- AIX setup----------------------------------------------
+#
+
+#  FREEDISKS are those without PVID
+#   If there is no PVID and ORCLDISK is in the header (lquerypv -h)
+#      then it is an ASM disk and this script will rendev/lkdev
+#   If there is no PVID and no ORCLDISK, then do not do anything with the disk
+FREEDISKS=`lspv | awk ' $2 == "none" { print $1 }'`
+for i in $FREEDISKS; do
+	lquerypv -h /dev/$i | grep ORCLDISK > /dev/null 2>&1
+	if [[ $? -eq 0 ]]; then
+		DG4CHAR=`lquerypv -h /dev/$i |grep ^00000060 | cut -c58-61`
+		NEWNAME=`echo $i | sed "s/hdisk/hdisk$DG4CHAR/"`
+		rendev -l $i -n $NEWNAME
+		chown grid:asmdba /dev/$NEWNAME /dev/r$NEWNAME
+		chmod 660 /dev/$NEWNAME /dev/r$NEWNAME
+		lkdev -l $NEWNAME -a -c ASM
+	fi
+done
+# ---------- end of AIX setup --------------------------------------
+#
+# ---------- Change hostname to DNS ---------------------------
+#
+# We are using set_hostname in cloud.cfg so the hostname after
+# cloud-init completes will be the name specified for the VM
+# because the default db_name (if unspecified) will be the vm name
+#
+logmsg "set hostname to DNS-registered name"
+IPADDR=`ifconfig -a|awk '/inet 127/ {next;}
+		/inet / {print $2}'`
+NEWHOST_FQDN=`nslookup $IPADDR|\
+		awk '/name =/ { printf("%s\n",substr($4,0,length($4)-1))}'`
+NEWDOM=`echo $NEWHOST_FQDN | cut -d. -f2-4`
+if [ -z "$NEWHOST_FQDN" -o -z "$NEWDOM" ]; then
+	logmsg "IP address lookup for $IPADDR in DNS not successful"
+	logmsg "unable to set hostname to DNS-registered"
+	logmsg "inittab entry not removed."
+	logmsg "$0 aborting"
+	exit 6
+else
+	chdev -l inet0 -a hostname=$NEWHOST_FQDN
+	if [ $? -ne 0 ]; then
+		logmsg "chdev -l inet0 -a hostname=$NEWHOST_FQDN failed"
+		logmsg "inittab entry not removed."
+		logmsg "$0 aborting"
+		exit 6
+	else
+		logmsg "chdev -l inet0 -a hostname=$NEWHOST_FQDN successful"
+#  reset value of current host for later use
+		CURRENT_HOST=`hostname`
+
+#  following two commands held over from earlier chhost.ksh
+		/usr/sbin/hostid $NEWHOST_FQDN
+		if [ $? -ne 0 ]; then
+			logmsg "$0 - /usr/sbin/hostid $NEWHOST_FQDN failed. Abort"
+			logmsg "inittab entry not removed."
+			exit 6
+		fi
+
+#   Ignoring errors for lpd changes
+		/usr/lib/lpd/pio/etc/piodmgr -c > /dev/null 2>&1
+	fi
+fi
+# ---------- end of change hostname ---------------------------
+
+# ---------- Reconfigure Oracle Restart ----------------------------
+#  ref: How to Reconfigure Oracle Restart on 12c / 12.1 (Doc ID 1570358.1)
+# 
+#
+#  With hostname change, modify $GRID/network/admin/listener.ora - 
+#      change HOST to CURRENT_HOST (now the DNS name)
+#  change source hostname to current hostname
+logmsg "modifying listener.ora"
+cp $GRID_HOME/network/admin/listener.ora $GRID_HOME/network/admin/listener.ora.bak
+
+grep "DEPLOYHOST" $GRID_HOME/network/admin/listener.ora > /dev/null
+if [ $? -eq 0 ]; then
+	sed "s/DEPLOYHOST/${CURRENT_HOST}/" $GRID_HOME/network/admin/listener.ora > /tmp/listener.ora
+	cp /tmp/listener.ora $GRID_HOME/network/admin/listener.ora
+else
+	logmsg "Expected string DEPLOYHOST not found in listener.ora."
+	logmsg "Saved old listener.ora and generating new basic listener file."
+
+	echo "# Generated by Oracle configuration tools / DBaasv3 post-deploy" > $GRID_HOME/network/admin/listener.ora
+	echo "" >> $GRID_HOME/network/admin/listener.ora
+	echo "LISTENER =" >> $GRID_HOME/network/admin/listener.ora
+	echo "  (DESCRIPTION_LIST =" >> $GRID_HOME/network/admin/listener.ora
+	echo "    (DESCRIPTION =" >> $GRID_HOME/network/admin/listener.ora
+	echo "      (ADDRESS = (PROTOCOL = TCP)(HOST = ${CURRENT_HOST})(PORT = 1521))" >> $GRID_HOME/network/admin/listener.ora
+	echo "      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))" >> $GRID_HOME/network/admin/listener.ora
+	echo "    )" >> $GRID_HOME/network/admin/listener.ora
+	echo "  )" >> $GRID_HOME/network/admin/listener.ora
+	echo "" >> $GRID_HOME/network/admin/listener.ora
+	echo "ENABLE_GLOBAL_DYNAMIC_ENDPOINT_LISTENER=ON              # line added by Agent" >> $GRID_HOME/network/admin/listener.ora
+	echo "VALID_NODE_CHECKING_REGISTRATION_LISTENER=SUBNET        # line added by Agent" >> $GRID_HOME/network/admin/listener.ora
+
+fi
+chown grid:oinstall $GRID_HOME/network/admin/listener.ora*
+#
+# If the stop command fails with CRS-4047 that means HAS is
+# not currently configured and we can skip the "deconfig" step
+# This is the expected status!
+logmsg "attempting to stop has"
+logmsg "The following error is expected"
+logmsg "=========================="
+$GRID_HOME/bin/crsctl stop has | grep CRS-4047
+ecode=$?
+logmsg "=========================="
+
+if [ $ecode -ne 0 ]; then 
+	logmsg "deconfiguring has"
+	$GRID_HOME/perl/bin/perl -I$GRID_HOME/perl/lib -I$GRID_HOME/crs/install $GRID_HOME/crs/install/roothas.pl -deconfig -force
+fi
+
+logmsg "running root.sh"
+cd $GRID_HOME
+echo "\n" | ./root.sh 
+
+logmsg "registering asm"
+#  pw file only in 12c and later - see MOS Doc ID 1935891.1
+#  location of the ASM password file
+$GRID_HOME/bin/srvctl add asm -pwfile $ASMPWFILE
+
+logmsg "starting asm"
+$GRID_HOME/bin/srvctl start asm
+#
+#  get the names and mount the disk groups
+logmsg "mounting ASM diskgroups"
+ASMDG=`su - grid -c "asmcmd lsdg --suppressheader --discovery" | awk '{ printf $NF" "}' | tr -d '/'`
+logmsg "mounting ASM diskgroup(s) $ASMDG"
+su - grid -c "asmcmd mount $ASMDG"
+
+#
+#  register and start listener
+logmsg "adding and starting listener"
+su - grid -c "srvctl add listener"
+su - grid -c "srvctl start listener"
+
+#  See MOS Doc ID 1668455.1
+#  trying to match srvctl config asm ..? Ques: how about diskstring? not on original either
+ASMSPFILE=`su - grid -c 'asmcmd find --type ASMPARAMETERFILE +ASMREPO "*"'`
+$GRID_HOME/bin/srvctl modify asm -spfile $ASMSPFILE
+
+# ------- end of Oracle Restart reconfiguration --------------------
+
+# ------- Start OEM agent deployment (background) ------------------
+#
+#  Start OEM agent deployment in the background
+#  fork a process to perform the OEM agent deployment
+#  possible lowercase from .cfg
+if [[ $STARTOEM = "YES" || $STARTOEM = "yes" ]]; then
+	logmsg "starting OEM agent deployment"
+	if [[ -x `dirname $0`/$OEMAGENTSCRIPT ]]; then
+		`dirname $0`/$OEMAGENTSCRIPT > /tmp/$OEMAGENTSCRIPT.log 2>&1 &
+#  		save the background job process id
+		AGENTPID=$!
+		logmsg "`dirname $0`/$OEMAGENTSCRIPT started, pid=$AGENTPID"
+		logmsg "log file $OEMAGENTSCRIPT.log file directed to /tmp"
+	else
+		logmsg "WARNING: `dirname $0`/$OEMAGENTSCRIPT not found"
+		logmsg "WARNING: unable to perform OEM agent deployment/registration"
+		logmsg "INFO: Continuing without OEM agent."
+		AGENTPID=0
+	fi
+else
+	logmsg "STARTOEM=$STARTOEM, OEM agent will not be started. "
+fi
+# ------- end of OEM agent deployment start ------------------------------
+
+# ------- Create database instance ---------------------------------
+#
+logmsg "Prepare database creation"
+#  if DBNAME is still null, the take vm name
+if [ -z "${DBNAME}" ]; then
+	logmsg "db_name not provided, defaulting to vm name $VM_NAME"
+	DBNAME=$VM_NAME
+fi
+
+logmsg "removing any non-alphanumeric from db_name and checking length."
+# 	get rid of all characters except alphanumeric 
+DBNAME=`echo $DBNAME | tr -d -c 'a-zA-Z0-9'`
+
+#
+#  maximum characters allowed in db_name
+MAXLEN=8
+#  if provided db_name is longer than MAXLEN characters, truncate to MAXLEN characters
+if [ ${#DBNAME} -gt ${MAXLEN} ]; then
+	logmsg "New DB name $DBNAME is longer than supported 8 characters " 
+	DBNAME=`echo $DBNAME | cut -c 1-$MAXLEN`
+	logmsg "Truncated to $MAXLEN characters result: $DBNAME" 
+fi
+
+logmsg "db_name will be set to >$DBNAME<"
+
+#  parameters for dbca
+#  DBNAME was set earlier
+SIDNAME=$DBNAME
+#
+#  These are set in the .cfg file
+#         DBSNMPPW
+#         ORASYSPW
+#         ASMSYSPW
+#         DATADG
+#         RECOVDG
+
+# Verify that specified DATADG and RECOVDG exist
+logmsg "Verifying that DATADG and RECOVDG are mounted in ASM"
+DGerror=0
+echo $ASMDG | grep ${DATADG} > /dev/null
+if [ $? -ne 0 ]; then
+	logmsg "Configured data DG - ${DATADG} not known to ASM!"
+	logmsg "Can not create database via dbca. Step skipped!"
+	DGerror=1
+fi
+
+echo $ASMDG | grep ${RECOVDG} > /dev/null
+if [ $? -ne 0 ]; then
+	logmsg "Configured recovery DG - ${RECOVDG} not known to ASM!"
+	logmsg "Can not create database via dbca. Step skipped!"
+	DGerror=1
+fi
+
+if [ ${DGerror} -eq 0 ]; then
+	logmsg "creating database"
+	su - oracle -c "dbca -silent -createDatabase -templateName `dirname $0`/atsdemo.dbc -gdbName $DBNAME -sid $SIDNAME -sysPassword $ORASYSPW -systemPassword $ORASYSPW -dbsnmpPassword $DBSNMPPW  -serviceUserPassword $ORASYSPW -emConfiguration LOCAL -storageType ASM -diskGroupName +$DATADG -recoveryGroupName +$RECOVDG -datafileJarLocation \$ORACLE_HOME/assistants/dbca/templates -listeners LISTENER -characterset WE8MSWIN1252 -obfuscatedPasswords false -sampleSchema false -asmSysPassword $ASMSYSPW"
+	
+	retval=$?
+	if [ ${retval} -ne 0 ]; then
+		logmsg "ERROR ${retval} from database creation"
+		logmsg "review log file in /u01/app/oracle/cfgtoollogs/dbca/${DBNAME}"
+	else
+		logmsg "updating ORACLE_SID in oracle user's .profile"
+# 		add correct ORACLE_SID to oracle user's .profile 
+		cat ~oracle/.profile | grep -v ORACLE_SID > /tmp/oracle.profile.tmp
+		echo "export ORACLE_SID=$DBNAME" >> /tmp/oracle.profile.tmp
+		cp ~oracle/.profile ~oracle/.profile.save
+		cp /tmp/oracle.profile.tmp ~oracle/.profile
+
+# 		unexpire and unlock the DBSNMP account
+# 		which is needed for access from OEM
+		logmsg "unlock DBSNMP account"
+		logmsg "save spfile to /home/oracle/deploy_init.ora"
+		su - oracle -c "sqlplus SYS/$ORASYSPW@$DBNAME as sysdba << !!!
+		alter user DBSNMP identified by $DBSNMPPW account unlock;
+		create pfile='/home/oracle/deploy_init.ora' from spfile;  
+		quit
+!!!"
+
+	fi
+fi
+# ------- end of db create -----------------------------------------
+
+# ------- Wait for OEM agent deploy script to complete -------------
+#
+#  wait for agent deployment background job (should be finished by this time)
+if [[ $STARTOEM = "YES" || $STARTOEM = "yes" ]]; then 
+	if [[ $AGENTPID -ne 0 ]]; then 
+		logmsg "wait for $OEMAGENTSCRIPT completion"
+		wait $AGENTPID
+		RC=$?
+		if [ $RC -ne 0 ]; then
+			logmsg "ERROR $OEMAGENTSCRIPT returned $RC"
+			logmsg "check $OEMAGENTSCRIPT.log for errors" 
+		else
+			logmsg "$OEMAGENTSCRIPT ended, RC=$RC"
+#   			get status of the agent and report
+			. `dirname $0`/$OEMAGENTSCRIPT.cfg
+			su - oracle -c "$AGENT_HOME/bin/emctl status agent" | grep "Agent is Running and Ready"
+			RC=$?
+			if [[ $RC -ne 0 ]]; then
+				logmsg "ERROR:  status check for OEM agent failed, RC=$RC"
+				logmsg "ERROR:    check $OEMAGENTSCRIPT.log for error information."
+			else
+				logmsg "status check: OEM agent is running and ready"
+			fi	
+		fi
+	else
+		logmsg "unable to perform OEM registration as `dirname $0`/$OEMAGENTSCRIPT start failed"
+		logmsg "review log for error messages regarding OEM registration"
+	fi
+fi
+# ------- end of wait ----------------------------------------------
+
+# ------- Cleanup---------------------------------------------------
+#
+#  Reserved for any cleanup processing
+#
+# ------- end of cleanup -------------------------------------------
+
+logmsg "ended.  Exit code=$RC."
+exit $RC
