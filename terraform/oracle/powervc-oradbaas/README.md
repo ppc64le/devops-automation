@@ -7,6 +7,12 @@ This PoT utilizes IBM Power servers, HMC, IBM PowerVM, IBM PowerVC, AIX 7.2 and 
 
 Familiarity with the IBM Power environment, IBM PowerVC, AIX system administration, Oracle Database 12c and Oracle Grid Infrastructure 12c is assumed.
 
+# Prerequisites
+* Installed and working IBM PowerVC 1.3.1 or later install with IBM Power servers and PowerVC vontrolled storage
+* AIX 7.x install software
+* Oracle 12c database and grid software for AIX
+
+# How to get started
 See __Deploy_Oracle DBaaS_with_PowerVC131_v1.0.pdf__ for implementation details. All developed support scripts to implement Oracle Database as a Service are included as well.
 
 The following figure illustrates the steps required to build the full PowerVC image for Oracle DBaaS functionality.

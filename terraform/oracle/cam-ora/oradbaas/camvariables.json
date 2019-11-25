@@ -1,0 +1,121 @@
+{
+  "input_datatypes": [ ],
+  "input_namespaces": [ ],
+  "output_namespace": "",
+  "input_groups": [
+    {
+      "name": "Input-parameters",
+      "label": "Input parameters"
+    }
+  ],
+  "output_groups": [ 
+     {
+      "name": "Output-parameters",
+      "label": "Output parameters"
+    }
+  ], 
+  "template_input_params": [
+    {
+      "name": "dbserver_name",
+      "label": "db server VM name prefix",
+      "description": " db server VM name prefix. Oracle dbname and a timestamp will be appended in the PowerVC VM name.",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "Input-parameters",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "openstack_image_name",
+      "label": "Openstack Image Name",
+      "description": "PowerVC image name",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "Input-parameters",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "openstack_flavor_name",
+      "label": "Openstack Flavor Name",
+      "description": "flavor name, or PowerVC compute template)",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "Input-parameters",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "openstack_network_id",
+      "label": "Openstack Network Id",
+      "description": "Network id in PowerVC",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "Input-parameters",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "dbserver_user_data",
+      "label": "Dbserver User Data",
+      "description": "Oracle DB name",
+      "type": "string",
+      "default": "RSDtest",
+      "validation": "",
+      "group_name": "Input-parameters",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    }
+  ],
+  "template_output_params": [
+    {
+      "name": "dbserver_ipaddr",
+      "label": "dbserver IP address",
+      "description": null,
+      "group_name": "Output-parameters",
+      "secured": false,
+      "hidden": false,
+      "shortname": "",
+      "type": "string"
+    },
+    {
+      "name": "dbserver_vm_name",
+      "label": "dbserver VM name",
+      "description": "VM name in PowerVC",
+      "group_name": "Output-parameters",
+      "secured": false,
+      "hidden": false,
+      "shortname": "",
+      "type": "string"
+    },
+    {
+      "name": "dbserver_ts",
+      "label": "dbserver ts",
+      "description": "internal only - timestamp for output to dbclient",
+      "group_name": "Output-parameters",
+      "secured": false,
+      "hidden": true,
+      "shortname": "",
+      "type": "string"
+    }
+  ]
+}

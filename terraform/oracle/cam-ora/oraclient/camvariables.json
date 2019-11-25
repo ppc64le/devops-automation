@@ -1,0 +1,160 @@
+{
+  "input_datatypes": [ ],
+  "input_namespaces": [ ],
+  "output_namespace": "",
+  "input_groups": [  {
+    "name": "input-parms",
+    "label": "Input parameters"
+  } ],
+  "output_groups": [  {
+    "name": "output_parms",
+    "label": "Output parmeters"
+  } ],
+  "template_input_params": [
+    {
+      "name": "dbclient_name",
+      "label": "db client VM name prefix",
+      "description": "DB client name (VM) on PowerVC",
+      "type": "string",
+      "default": "dbc",
+      "validation": "",
+      "group_name": "input-params",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "openstack_image_name_dbclient",
+      "label": "Openstack Image Name Dbclient",
+      "description": "PowerVC image name",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": false
+    },
+    {
+      "name": "openstack_flavor_name_dbclient",
+      "label": "Openstack Flavor Name Dbclient",
+      "description": "PowerVC Compute Template name",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": false
+    },
+    {
+      "name": "openstack_network_name",
+      "label": "Openstack Network Name",
+      "description": "PowerVC network name",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": false
+    },
+    {
+      "name": "dbserver_user_data",
+      "label": "DB Server's DB name",
+      "description": "Oracle DB name",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "input-params",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "dbserver_ipaddr",
+      "label": "DB Server ip address",
+      "description": "DB server IP address",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "input-params",
+      "required": true,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": true
+    },
+    {
+      "name": "dbserver_ts",
+      "label": "unique id in dbclient VM name",
+      "description": "Unique id to be appended to db client name",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "group_name": "input-params",
+      "required": false,
+      "secured": false,
+      "hidden": false,
+      "immutable": false,
+      "immutable_after_create": false
+    }
+  ],
+  "template_output_params": [
+    {
+      "name": "dbclient_ipaddr",
+      "label": "DB client IP address",
+      "description": "dbclient IP address",
+      "group_name": "output_parms",
+      "secured": false,
+      "hidden": false,
+      "shortname": "",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "required": true,
+      "immutable": false,
+      "immutable_after_create": false
+    },
+    {
+      "name": "dbclient_vm_name",
+      "label": "DB client VM name",
+      "description": "dbclient VM name",
+      "group_name": "output_parms",
+      "secured": false,
+      "hidden": false,
+      "shortname": "",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "required": true,
+      "immutable": false,
+      "immutable_after_create": false
+    },
+    {
+      "name": "dbserver_connect",
+      "label": "Oracle db jdbc connect string",
+      "description": "Oracle database jdbc connect string",
+      "group_name": "output_parms",
+      "secured": false,
+      "hidden": false,
+      "shortname": "",
+      "type": "string",
+      "default": "",
+      "validation": "",
+      "required": true,
+      "immutable": false,
+      "immutable_after_create": false
+    }
+  ]
+}
