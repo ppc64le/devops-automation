@@ -26,7 +26,8 @@
 #  is informed of their possibility. Some jurisdictions do not allow the
 #  exclusion or limitation of incidental or consequential damages, so the
 #  above exclusion or limitation may not apply to you.
-#----------------------------------------------------------------------#####################################################################
+#----------------------------------------------------------------------
+#####################################################################
 ##
 ##      Deploy LOP with Oracle client and Swingbench for oraclient
 ##

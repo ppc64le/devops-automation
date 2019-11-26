@@ -26,10 +26,16 @@
 #  is informed of their possibility. Some jurisdictions do not allow the
 #  exclusion or limitation of incidental or consequential damages, so the
 #  above exclusion or limitation may not apply to you.
-#----------------------------------------------------------------------#####################################################################
+#----------------------------------------------------------------------
+#####################################################################
 ##
 ##      Deploy LOP with Oracle client and Swingbench for oraclient
 ##
+#####################################################################
+#
+# Note that the text <MY_NFS_SERVER_IP> needs to be replaced with the
+# hostname or IP of your NFS server in the line:
+# - mount <MY_NFS_SERVER_IP>:/export/stage /mnt
 #####################################################################
 
 terraform {
@@ -126,7 +132,7 @@ write_files:
     permissions: '0755'
 runcmd:
   - systemctl restart vncserver@:1
-  - mount 129.40.93.119:/export/stage /mnt
+  - mount <MY_NFS_SERVER_IP>:/export/stage /mnt
   - if [ `uname -p` = "ppc64le" ]; then cp /mnt/client/12g/instantclient*.leppc64.*.zip /root; elif [[ `uname -p` = "ppc64" ]]; then cp /mnt/client/12g/instantclient*.ppc64.*.zip /root; fi
   - unzip -o /mnt/Swingbench/swingbench261076.zip -d /opt
   - cd /root; for i in `ls | grep instantclient`; do unzip -o $i -d /opt; rm -f $i; done
