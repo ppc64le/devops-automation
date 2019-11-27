@@ -1,0 +1,13 @@
+{
+   "name": "oradbaas",
+   "description": "Description for oradbaas.",
+   "type": "userCreated",
+   "manifest": {
+     "template_type": "Terraform",
+     "template_format": "HCL",
+     "template_provider": "OpenStack"
+   },
+   "metadata": {
+     "bullets": []
+   }
+ }

@@ -1,0 +1,91 @@
+#!/bin/ksh
+
+######################################################################
+#  Copyright: IBM Corp., 2019
+#
+#  Written by: Stephen Poon, Ralf Schmidt-Dannert
+#              IBM North America Systems Hardware
+#              Power Technical Team, Oracle
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#  
+#----------------------------------------------------------------------
+#  rc.agent
+#
+#  This script deploys the OEM 12c agent.  
+#  It may be run standalone, but was created to be invoked 
+#    from rc.oracledbaasv3
+#  
+#  Change history: 6/8/2016 srp: new
+#                  8/17/2016 srp: added RCAGENT_VERSION
+#                 
+#
+
+logmsg()
+{
+	echo "** "`date +"%T %m/%d/%y"` `basename $0`: "$1"
+}
+
+#  for debugging
+#set -x
+
+#  source for environment variables
+. $0.cfg
+
+logmsg "starting from `dirname $0`"
+logmsg "version=$RCAGENT_VERSION"
+# ------------------------------------------------------------------
+#  Set up OEM Agent
+#
+#  IMPORTANT:  Deploys 12c OEM agent for the OEM manager in the aop lab
+#              Modify the following parameters for other envirnments
+# ------------------------------------------------------------------
+logmsg "set up OEM Agent"
+
+/usr/bin/chown -R oracle:oinstall $T_WORK
+
+# Execute Agent Clone Steps as user oracle
+
+if [ "$(ls -A $AGENT_BASE_DIR 2> /dev/null)" == "" ]; then
+	logmsg "$AGENT_BASE_DIR is empty so deploying agent."
+	su - oracle -c "$T_WORK/agentDeploy.sh AGENT_BASE_DIR=$AGENT_BASE_DIR OMS_HOST=$OMS_HOST EM_UPLOAD_PORT=$OMS_PORT AGENT_REGISTRATION_PASSWORD=$AGENT_REGISTRATION_PASSWORD -ignorePrereqs"
+	RC=$?
+	if [[ $RC -ne 0 ]]; then
+		logmsg "ERROR with agentDeploy, RC=$RC"
+	fi
+else
+	logmsg "$AGENT_BASE_DIR is not empty so assuming installation was completed prior to now and configurations need to be completed."
+fi
+
+#echo "Stop Agent"
+#su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl stop agent"
+logmsg "Executing the $AGENT_HOME/root.sh"
+sh $AGENT_HOME/root.sh
+RC=$?
+if [[ $RC -ne 0 ]]; then
+	logmsg "ERROR with root.sh, RC=$RC"
+fi
+#echo "Reset the agent timezone"
+#su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl resetTZ agent"
+#echo "Start agent"
+#su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl start agent"
+logmsg "upload agent"
+su - oracle -c "$AGENT_BASE_DIR/agent_inst/bin/emctl upload agent"
+RC=$?
+if [[ $RC -ne 0 ]]; then
+	logmsg "ERROR with agent upload, RC=$RC"
+fi
+# --------- end of OEM agent setup----------------------------------
+
+logmsg "ended. Last RC=$RC"
+exit $RC

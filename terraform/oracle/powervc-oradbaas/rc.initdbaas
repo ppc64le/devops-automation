@@ -1,0 +1,168 @@
+#!/bin/sh
+
+######################################################################
+#  Copyright: IBM Corp., 2019
+#
+#  Written by: Stephen Poon, Ralf Schmidt-Dannert
+#              IBM North America Systems Hardware
+#              Power Technical Team, Oracle
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#  
+#----------------------------------------------------------------------
+#  rc.initdbaas
+#
+#       In the comments herein, "rc.dbaas" is used in a generic sense.  
+#            Currently, rc.dbaas is rc.oracledbaasv3 (Oracle)
+#
+#	This script is invoked from /etc/inittab and performs the following:
+#         1.  check cloud-init's (/opt/freeware/var/lib/cloud/instance/user-data.txt)
+#         2.  if PARM_FILE is empty (zero size), run rc.dbaas (rc.dbaas monitors for PARM_FILE from vro)
+#         3.  if cloud-init PARM_FILE is not empty, copy cloud-init PARM_FILE to rc.dbaas's PARM_FILE and
+#                    run rc.dbaas
+#         4.  if cloud-init PARM_FILE does not exist, abort.  Cloud-init never run, could be dev source
+#
+#       rc.dbaas will monitor the existence of TRIGGER_FILE, then continue once it appears
+#          if TRIGGER_FILE does not appear, rc.dbaas will time out and continue.  In this scenario,
+#            db_name is set to the vm name.  
+#  
+#  Change history: 2/15/2017 srp: new
+#                  2/21/2017 srp: trigger file will be in /tmp so that a non-root user vro
+#                                 can write to it and /stage permissions can remain the same
+#                                  (root:system 755)
+#		   2/27/2017 srp: check for existence of trigger file.  If it's older than cloud-init's
+#				    user-data.txt, it must be leftover from the image source
+#
+
+logmsg()
+{
+	echo "** "`date +"%T %m/%d/%y"` `basename $0`: "$1"
+}
+
+# for debugging
+#set -x
+
+# ------------------------------- initialize -----------------------------------
+#
+#  TRIGGER_FILE is the rc.dbaas' parameter input file
+#  If the vm is deployed by vRA, rc.dbaas will monitor for this trigger file from vro
+#     
+#     PARM_FILE, which is defined in rc.oracledbaas
+#  For rc.oracledbaasv3, TRIGGER_FILE = /stage/user-data.txt
+
+#  source the cfg file for environment variables
+. $0.cfg
+
+TRIGGER_FILE=$PARM_FILE
+CLOUDINIT_FILE=/opt/freeware/var/lib/cloud/instance/user-data.txt
+
+logmsg "started from `dirname $0`"
+logmsg "$0 version is $RCINITDBAAS_VERSION"
+
+logmsg "Trigger file is $TRIGGER_FILE"
+logmsg "cloud-init file is $CLOUDINIT_FILE"
+logmsg "rc.dbaas is $RCDBAAS"
+# ------------------------------- end initialize -------------------------------
+
+# ------------------------------- check current host ---------------------------
+#  don't run this script on the image source host
+VM_NAME=`hostname -s`
+CURRENT_HOST=$VM_NAME
+logmsg "current hostname (vm name) is $VM_NAME"
+
+if [[ $CURRENT_HOST = $ORIG_HOST || $CURRENT_HOST = $ORIG_HOST_DNS ]]; then
+        logmsg "this script will not run because "
+        logmsg "hostname is original image source host - $ORIG_HOST or $ORIG_HOST_DNS"
+        logmsg "inittab entry not removed."
+        logmsg "$0 exiting, exit code=6"
+        exit 6
+else
+        logmsg "original image source host is $ORIG_HOST or $ORIG_HOST_DNS (DNS)"
+        logmsg "current host $CURRENT_HOST is not original image source host, continuing.."
+fi
+# ------------------------------- end check current host ------------------------
+
+# ------------------------------- process parameter file ------------------------
+if [[ -s $CLOUDINIT_FILE ]]; then
+	logmsg "`ls -l $CLOUDINIT_FILE`"
+	logmsg "$CLOUDINIT_FILE exists and has a size greater than 0"
+	logmsg "copying $CLOUDINIT_FILE to $TRIGGER_FILE"
+	cp $CLOUDINIT_FILE $TRIGGER_FILE
+else
+	if [[ -f $CLOUDINIT_FILE ]]; then
+#		do nothing, must be zero size
+		logmsg "`ls -l $CLOUDINIT_FILE`"
+		logmsg "$CLOUDINIT_FILE exists but has zero size"
+#
+#        if TRIGGER_FILE exists and is older than CLOUDINIT_FILE, it's leftover from image source
+#           newer than CLOUDINIT_FILE is not possible unless written by vRA or equivalent .. ?
+		if [[ -f $TRIGGER_FILE ]]; then
+			if [[ $CLOUDINIT_FILE -nt $TRIGGER_FILE ]]; then
+#				#  log it for debugging
+				logmsg "`ls -l $CLOUDINIT_FILE`"
+				logmsg "`ls -l $TRIGGER_FILE`"
+				logmsg "Trigger file $TRIGGER_FILE is older than cloud-init's user-data.txt"
+				logmsg ".. likely left over from source image"
+				rm $TRIGGER_FILE
+				logmsg "Removing old $TRIGGER_FILE"
+			else
+#				# very unlikely, but log it just in case 
+				logmsg "Trigger file found, newer than cloud-init user-data.txt"
+				logmsg "`ls -l $CLOUDINIT_FILE`"
+				logmsg "`ls -l $TRIGGER_FILE`"
+			fi
+		fi
+	else
+                logmsg "$CLOUDINIT_FILE does not exist"
+#               if CLOUDINIT_FILE does not exist, likely that cloud-init not installed/set up properly
+#		do nothing 
+		logmsg "inittab not removed by $0"
+		logmsg "$0 exiting, exit code=99"
+		exit 99
+	fi
+fi
+# ------------------------------- end process parameter file --------------------
+
+# ------------------------------- start rc.dbaas --------------------------------
+logmsg "Now starting dbaas - $RCDBAAS"
+logmsg " Log file for $RCDBAAS:  /tmp/`basename $RCDBAAS`.log"
+
+# run rc.dbaas
+$RCDBAAS > /tmp/`basename $RCDBAAS`.log 2>&1 &
+#  save the background job process id
+DBAASPID=$!
+#  wait for background process to stop before ending
+logmsg "wait for dbaas to complete .."
+wait $DBAASPID
+RC=$?
+if [ $RC -ne 0 ]; then
+	logmsg "ERROR, DBAAS returned $RC"
+	logmsg " check $LOGDIR/`basename $RCDBAAS`.log for further details"
+else
+	logmsg "DBAAS ended $RC"
+fi
+
+# ------------------------------- end start rc.dbaas ----------------------------
+
+# ------------------------------- cleanup ---------------------------------------
+# remove inittab entry
+if [ $RC -ne 6 ]; then
+	MYINITTAB=`lsitab -a | grep $0 | cut -d":" -f 1`
+	logmsg "removing inittab entry $MYINITTAB"
+	/usr/sbin/rmitab "$MYINITTAB"
+else
+	logmsg "inittab not removed by $0"
+fi
+# ------------------------------- end cleanup -----------------------------------
+
+logmsg "ended."
