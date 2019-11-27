@@ -8,7 +8,7 @@ This PoT utilizes IBM Power servers, HMC, IBM PowerVM, IBM PowerVC, AIX 7.2 and 
 Familiarity with the IBM Power environment, IBM PowerVC, AIX system administration, Oracle Database 12c and Oracle Grid Infrastructure 12c is assumed.
 
 # Prerequisites
-* Installed and working IBM PowerVC 1.3.1 or later install with IBM Power servers and PowerVC vontrolled storage
+* Installed and working IBM PowerVC 1.3.1 or later install with IBM Power servers and PowerVC controlled storage
 * AIX 7.x install software
 * Oracle 12c database and grid software for AIX
 
