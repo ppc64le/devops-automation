@@ -1,5 +1,5 @@
 <?xml version = '1.0'?>
-<DatabaseTemplate name="atsdemo" description="This is a template created from an existing template - General Purpose.  Created by IBM ATS Oracle Solutions team.." version="12.1.0.2.0">
+<DatabaseTemplate name="atsdemo" description="This is a template created from an existing template - General Purpose.  Created by IBM ATS Oracle Solutions team." version="12.1.0.2.0">
    <CommonAttributes>
       <option name="OMS" value="true"/>
       <option name="JSERVER" value="true"/>

@@ -13,7 +13,7 @@ Familiarity with the IBM Power environment, IBM PowerVC, AIX system administrati
 * Oracle 12c database and grid software for AIX
 
 # How to get started
-See __Deploy_Oracle DBaaS_with_PowerVC131_v1.0.pdf__ for implementation details. All developed support scripts to implement Oracle Database as a Service are included as well.
+See __Deploy_Oracle DBaaS_with_PowerVC131_v1.0.pdf__ for implementation details. All developed support scripts to implement Oracle Database as a Service are included.
 
 The following figure illustrates the steps required to build the full PowerVC image for Oracle DBaaS functionality.
 
