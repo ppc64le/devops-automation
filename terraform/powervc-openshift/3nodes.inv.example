@@ -1,5 +1,5 @@
 ##-----------------------------------------------------------------------##
-## 7Nodes (3xMaster-Infra, 3xWorkers(Applications) and 1 Load Balancer):
+## 3Nodes (1xMaster-Infra, 2xWorkers(Applications):
 ##-----------------------------------------------------------------------##
 
 [OSEv3:vars]
@@ -55,7 +55,7 @@ openshift_master_default_subdomain=apps.domain.example.com
 ## OpenShift Router and Registry Vars
 ##-----------------------------------------------------------------------##
 # NOTE: Qty should NOT exceed the number of infra nodes
-openshift_hosted_router_replicas=3
+openshift_hosted_router_replicas=1
 openshift_hosted_router_selector='node-role.kubernetes.io/infra=true'
 # NOTE: PowerVC FlexVolume Driver doesn't support shared file systems
 openshift_hosted_registry_replicas=1
@@ -136,20 +136,15 @@ openshift_cluster_monitoring_operator_alertmanager_storage_class_name='ibm-power
 masters
 etcd
 nodes
-lb
 
 # host group for masters
 [masters]
-mstnode0[1:3].domain.example.com
+mstnode01.domain.example.com
 
 # host group for etcd
 [etcd]
-mstnode0[1:3].domain.example.com
-
-# Specify load balancer host
-[lb]
-lbsnode01.domain.example.com
+mstnode01.domain.example.com
 
 [nodes]
-mstnode0[1:3].domain.example.com openshift_node_group_name='node-config-master-infra'
-wrknode0[1:3].domain.example.com openshift_node_group_name='node-config-compute'
+mstnode01.domain.example.com openshift_node_group_name='node-config-master-infra'
+wrknode0[1:2].domain.example.com openshift_node_group_name='node-config-compute'

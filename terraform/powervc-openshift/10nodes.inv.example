@@ -7,7 +7,8 @@
 ## Ansible Vars
 ##-----------------------------------------------------------------------##
 timeout=60
-#ansible_user={{CHANGEME_ANSIBLE_SSH_USER}}
+# ansible_user={{CHANGEME_ANSIBLE_SSH_USER}}
+# ansible_become=yes
 ansible_user=root
 
 ##-----------------------------------------------------------------------##
@@ -19,12 +20,12 @@ openshift_deployment_type=openshift-enterprise
 # openshift_disable_check="disk_availability,memory_availability"
 # OpenShift Version:
 openshift_release=3.11
-# openshift_pkg_version=-3.11.146
-# openshift_image_tag=v3.11.146
+openshift_image_tag=v3.11.154
+openshift_pkg_version=-3.11.154
 # firewalld recommended for new installations (default is iptables)
-os_firewall_use_firewalld=true
+os_firewall_use_firewalld=True
 # enable ntp on masters to ensure proper failover
-openshift_clock_enabled=true
+openshift_clock_enabled=True
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Registries Locations
@@ -33,9 +34,6 @@ openshift_clock_enabled=true
 oreg_url=registry.redhat.io/openshift3/ose-${component}:${version}
 oreg_auth_user={{CHANGEME_REGISTRY_SERVICE_ACCOUNT}}
 oreg_auth_password={{CHANGEME_SERVICE_KEY}}
-# NOTE: accept insecure registries and registries with self-signed certs
-# setup for lab environment
-openshift_docker_hosted_registry_insecure=true
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Master Vars
@@ -43,17 +41,25 @@ openshift_docker_hosted_registry_insecure=true
 openshift_master_api_port=8443
 openshift_master_console_port=8443
 # Internal cluster name
-openshift_master_cluster_hostname=rblbs01.example.com
-# External cluster name
-openshift_master_cluster_public_hostname=console.apps.example.com
-# Default wildcard domain for applications
+openshift_master_cluster_hostname=ocp.example.com
+# Note: When using an external Load Balancer service or device, the FQDN 
+# of the northbound VIP address must be specified in the inventory file 
+# using the variable openshift_master_cluster_public_hostname 
+openshift_master_cluster_public_hostname=ocp.example.com
+# Note: The OpenShift Routers at Infrastructure Nodes require a wildcard 
+# subdomain it will use to dynamically build a URL or Route for applications 
+# running on the platform and exposing a service outside the cluster
 openshift_master_default_subdomain=apps.example.com
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Router and Registry Vars
 ##-----------------------------------------------------------------------##
 # NOTE: Qty should NOT exceed the number of infra nodes
-openshift_hosted_router_replicas=3
+openshift_hosted_router_replicas=1
+openshift_hosted_router_selector='node-role.kubernetes.io/infra=true'
+# NOTE: PowerVC FlexVolume Driver doesn't support shared file systems
+openshift_hosted_registry_replicas=1
+openshift_hosted_registry_selector='node-role.kubernetes.io/infra=true'
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Authentication Vars
@@ -64,16 +70,10 @@ openshift_hosted_router_replicas=3
 # htpasswd Authentication
 ##---------------------##
 # NOTE: read initial identities in htpasswd format from /root/htpasswd.openshift
-openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'True', 'challenge': 'True', 'kind': 'HTPasswdPasswordIdentityProvider'}]
 # To define initial users directly in the inventory file:
 # Note: https://docs.openshift.com/container-platform/3.3/admin_solutions/master_node_config.html#htpasswd
 openshift_master_htpasswd_users={'admin':'$apr1$hYehsOQ6$DQWSmGhPdS2LzS5cDJuU21','developer':'$apr1$I0a9K2v0$ZLPrXnQseMlwTJIYzM8Hd.'}
-
-##-----------------------------------------------------------------------##
-## OpenShift Cockpit Vars and plugins
-##-----------------------------------------------------------------------##
-# Disable cockpit
-osm_use_cockpit=false
 
 ##-----------------------------------------------------------------------##
 ## Docker Vars
@@ -87,8 +87,47 @@ container_runtime_docker_storage_type=overlay2
 # Defaults
 # osm_cluster_network_cidr=10.128.0.0/14
 # openshift_portal_net=172.30.0.0/16
-# Configure the multi-tenant SDN plugin (default is 'redhat/openshift-ovs-subnet')
+# SDN plugin (default is 'redhat/openshift-ovs-subnet')
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+# Set SDN MTU (default is 1450)
+# openshift_node_sdn_mtu=1400
+
+##-----------------------------------------------------------------------##
+## Metrics Server
+##-----------------------------------------------------------------------##
+# Enable Metrics Server
+openshift_metrics_server_install=True
+
+##-----------------------------------------------------------------------##
+## Service Catalog
+##-----------------------------------------------------------------------##
+# default=True
+openshift_enable_service_catalog=True
+# default=True
+template_service_broker_install=True
+openshift_template_service_broker_namespaces=['openshift']
+template_service_broker_selector={"node-role.kubernetes.io/infra":"true"}
+# default=True
+ansible_service_broker_install=True
+ansible_service_broker_local_registry_whitelist=['.*-apb$']
+
+##-----------------------------------------------------------------------##
+## Prometheus Cluster Monitoring
+##-----------------------------------------------------------------------##
+# https://docs.openshift.com/container-platform/3.11/install_config/prometheus_cluster_monitoring.html
+openshift_cluster_monitoring_operator_install=False
+openshift_prometheus_node_selector={"node-role.kubernetes.io/infra":"true"}
+# Enable persistent storage of Prometheus time-series data (default False)
+openshift_cluster_monitoring_operator_prometheus_storage_enabled=True
+# Enable persistent storage of Alertmanager notifications (default False)
+openshift_cluster_monitoring_operator_alertmanager_storage_enabled=True
+# Dynamic storage allocation for Prometheus services
+openshift_cluster_monitoring_operator_prometheus_storage_capacity=32Gi
+openshift_cluster_monitoring_operator_alertmanager_storage_capacity=4Gi
+# Storage class to use if persistent storage enabled
+# NOTE: it will use storageclass default if storage class not specified
+openshift_cluster_monitoring_operator_prometheus_storage_class_name='ibm-powervc-k8s-volume-default'
+openshift_cluster_monitoring_operator_alertmanager_storage_class_name='ibm-powervc-k8s-volume-default'
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Hosts

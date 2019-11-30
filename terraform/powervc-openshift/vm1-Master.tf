@@ -208,7 +208,6 @@ resource "openstack_compute_instance_v2" "vm1" {
 cp /etc/resolv.conf /etc/resolv.conf.orig.$(date +%Y%m%d)
 cat >/etc/resolv.conf<<"EOF_/etc/resolv.conf"
 search ${var.dns_domain}
-domain ${var.dns_domain}
 nameserver ${var.dns1}
 EOF_/etc/resolv.conf
 chown root:root /etc/resolv.conf
@@ -216,8 +215,7 @@ chmod 644 /etc/resolv.conf
 
 echo "PEERDNS=yes" >> /etc/sysconfig/network-scripts/ifcfg-eth0
 echo "DNS1=${var.dns1}" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-echo "SEARCH=${var.dns_domain}" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-echo "DOMAIN=${var.dns_domain}" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+echo "SEARCH=\"${var.dns_domain}\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
 systemctl restart NetworkManager
 
 /usr/sbin/rsct/install/bin/recfgct
