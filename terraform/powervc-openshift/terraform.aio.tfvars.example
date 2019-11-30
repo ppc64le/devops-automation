@@ -22,10 +22,10 @@ dns_domain          = "domain.example.com"  # DNS Domain Name
 #---------------------------------
 net1_name           = "net_ocp_cluster1"    # Network Name
 net1_vlan_id        = "1"                   # VLAN ID
-net1_subnet         = "9.108.96.0/21"       # Network/Mask 
-net1_gateway        = "9.108.96.1"          # Gateway
-net1_start          = "9.108.97.223"        # First IP from Pool
-net1_end            = "9.108.97.223"        # Last IP from Pool
+net1_subnet         = "192.168.11.0/24"     # Network/Mask 
+net1_gateway        = "192.168.11.1"        # Gateway
+net1_start          = "192.168.11.223"      # First IP from Pool
+net1_end            = "192.168.11.223"      # Last IP from Pool
 
 #VM1 configuration (OCP - Master Nodes)
 #---------------------------------
@@ -34,7 +34,7 @@ vm1_memory         = "32"                   # Memory GB
 vm1_cpu            = "8"                    # Virtual CPU
 vm1_vcpu_ratio     = "4"                    # vCPU RATIO 1:4 1 vCPU = 0.25 eCPU (cores)
 vm1_name           = "bsocp"                # Hostname prefix
-vm1_first_ip       = "9.108.97.223"         # Fist IP from a consecutive pool of IPs
+vm1_first_ip       = "192.168.11.223"       # Fist IP from a consecutive pool of IPs
 vm1_image_name     = "xiv_p9_image_rhel76"  # The image name
 vm1_remote_restart = "true"                 # Enable Auto Remote Restart
 vm1_storage_name   = "xiv_StoragePool"      # Storage Template

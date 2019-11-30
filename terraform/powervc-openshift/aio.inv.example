@@ -19,8 +19,8 @@ openshift_deployment_type=openshift-enterprise
 # openshift_disable_check="disk_availability,memory_availability"
 # OpenShift Version:
 openshift_release=3.11
-# openshift_pkg_version=-3.11.146
-# openshift_image_tag=v3.11.146
+# openshift_pkg_version=-3.11.154
+# openshift_image_tag=v3.11.154
 # firewalld recommended for new installations (default is iptables)
 os_firewall_use_firewalld=true
 # enable ntp on masters to ensure proper failover
@@ -50,7 +50,7 @@ openshift_master_cluster_hostname=bsocp01.example.com
 # External cluster name
 # openshift_master_cluster_public_hostname=ocp-ext.example.com
 # Default wildcard domain for applications
-openshift_master_default_subdomain=apps.bs.ibm.com
+openshift_master_default_subdomain=apps.example.com
 
 ##-----------------------------------------------------------------------##
 ## OpenShift Authentication Vars
