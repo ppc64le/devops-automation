@@ -14,7 +14,7 @@ Deployment of 'OpenShift Container Platform on PowerVC' is a two steps process:
 
 The following figure illustrates the deployment process for the 'OpenShift Container Platform on PowerVC'.
 
-![Deployment Process Diagram](./docs/DeploymentProcess.png)
+![Deployment Process Diagram](./docs/DeploymentProcess.png?style=centerme)
 
 ## Prerequisite
 
