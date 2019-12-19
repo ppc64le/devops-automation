@@ -224,8 +224,8 @@
             "hidden": false,
             "required": false,
             "secured": false,
-            "description": "Oracle dbname",
-            "default": "${templates.oradbaas13c2cfb6.output.dbserver_user_data}"
+            "description": "Oracle Database name",
+            "default": "${templates.oradbaas13c2cfb6.output.dbname}"
           },
           {
             "name": "oradb_connect",
