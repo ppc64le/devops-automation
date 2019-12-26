@@ -36,3 +36,7 @@ output "dbserver_vm_name" {
 output "dbserver_ts" {
   value = "${format("${local.local_dbserver_ts}")}"
 }
+
+output "dbname" {
+  value = "${var.dbserver_user_data}"
+}
