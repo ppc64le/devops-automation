@@ -116,6 +116,16 @@
       "hidden": true,
       "shortname": "",
       "type": "string"
+    },
+    {
+      "name": "dbname",
+      "label": "dbname",
+      "description": "Database name",
+      "group_name": "Output-parameters",
+      "secured": false,
+      "hidden": true,
+      "shortname": "",
+      "type": "string"
     }
   ]
 }
