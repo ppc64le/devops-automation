@@ -33,7 +33,7 @@ variable "vpc_zone" {
 }
 
 variable "storage_profile" {
-  description = "Create SSH Key"
+  description = "Set the storage profile"
   default = "10iops-tier"
 }
 
