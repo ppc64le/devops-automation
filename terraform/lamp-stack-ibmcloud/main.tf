@@ -1,3 +1,7 @@
+locals {
+  ports = "${list("22", "80", "443")}"
+}
+
 resource "ibm_is_vpc" "vpc" {
   name = "${var.basename}-vpc"
 }
@@ -16,6 +20,14 @@ resource "ibm_is_ssh_key" "public_key" {
   public_key = "${tls_private_key.ssh_key_keypair.public_key_openssh}"
 }
 
+# Create storage which will be used to store web server files
+resource "ibm_is_volume" "cloud_storage" {
+  name = "${var.basename}-cloud-storage"
+  zone = "${var.storage_zone}"
+  capacity = "${var.storage_capacity}"
+  profile = "${var.storage_profile}"
+}
+
 # Create a public floating IP so that the app is available on the Internet
 resource "ibm_is_floating_ip" "fip1" {
   name = "${var.basename}-fip"
@@ -24,6 +36,7 @@ resource "ibm_is_floating_ip" "fip1" {
 
 # Enable ssh into the instance for debug
 resource "ibm_is_security_group_rule" "sg1-tcp-rule" {
+  count = "${length(local.ports)}"
   depends_on = [
     "ibm_is_floating_ip.fip1"
   ]
@@ -33,38 +46,8 @@ resource "ibm_is_security_group_rule" "sg1-tcp-rule" {
 
 
   tcp = {
-    port_min = 22
-    port_max = 22
-  }
-}
-
-# Enable port 443 - main application port
-resource "ibm_is_security_group_rule" "sg2-tcp-rule" {
-  depends_on = [
-    "ibm_is_floating_ip.fip1"
-  ]
-  group = "${ibm_is_vpc.vpc.default_security_group}"
-  direction = "inbound"
-  remote = "0.0.0.0/0"
-
-  tcp = {
-    port_min = 443
-    port_max = 443
-  }
-}
-
-# Enable port 80 - only use to redirect to port 443
-resource "ibm_is_security_group_rule" "sg3-tcp-rule" {
-  depends_on = [
-    "ibm_is_floating_ip.fip1"
-  ]
-  group = "${ibm_is_vpc.vpc.default_security_group}"
-  direction = "inbound"
-  remote = "0.0.0.0/0"
-
-  tcp = {
-    port_min = 80
-    port_max = 80
+    port_min = "${element(local.ports, count.index)}"
+    port_max = "${element(local.ports, count.index)}"
   }
 }
 
@@ -79,10 +62,8 @@ resource "ibm_is_instance" "vm" {
 
   vpc = "${ibm_is_vpc.vpc.id}"
   zone = "${var.vpc_zone}"
-  keys = [
-    "${ibm_is_ssh_key.public_key.id}"
-  ]
-
+  keys      = ["${ibm_is_ssh_key.public_key.id}"]
+  volumes = ["${ibm_is_volume.cloud_storage.id}"]
   timeouts {
     create = "10m"
     delete = "10m"
@@ -105,8 +86,8 @@ resource "null_resource" "provisioners" {
     "ibm_is_security_group_rule.sg1-tcp-rule"
   ]
   provisioner "file" {
-    source = "scripts/setup_env.sh"
-    destination = "/tmp/setup_env.sh"
+    source =  "scripts"   
+    destination = "/tmp"
     connection {
       type = "ssh"
       user = "root"
@@ -116,13 +97,18 @@ resource "null_resource" "provisioners" {
       private_key = "${tls_private_key.ssh_key_keypair.private_key_pem}"
     }
   }
+  
   provisioner "remote-exec" {
     inline = [
       "set -e",
+      "chmod u+x /tmp/scripts*/*",
       "export VAR_DB_PASSWORD=${var.db_password}",
-      "chmod u+x /tmp/setup_env.sh",
-      "/tmp/setup_env.sh",
-      "rm -rf /tmp/setup_env.sh",
+      "/tmp/scripts/wait_for_boot.sh",
+      "/tmp/scripts/mount_volume.sh",
+      "/tmp/scripts/add_packages.sh",
+      "/tmp/scripts/setup_db.sh",
+      "/tmp/scripts/add_web_pages.sh",
+      "rm -rf /tmp/scripts",
       "exit 0",
     ]
     connection {

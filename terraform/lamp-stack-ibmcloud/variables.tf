@@ -9,7 +9,7 @@
 #
 # Licensed Materials - Property of IBM
 #
-# ©Copyright IBM Corp. 2017
+# ©Copyright IBM Corp. 2020
 #
 ################################################################
 variable "basename" {
@@ -19,7 +19,7 @@ variable "basename" {
 
 variable "boot_image_id" {
   description = "UUID of the base image for the virtual server (should be an Ubuntu 18.04 base)"
-  default = "r006-d2f5be47-f7fb-4e6e-b4ab-87734fd8d12b"
+  default = "r134-d2f5be47-f7fb-4e6e-b4ab-87734fd8d12b"
 }
 
 variable "vpc_region" {
@@ -29,6 +29,21 @@ variable "vpc_region" {
 
 variable "vpc_zone" {
   description = "Target availbility zone to create this instance"
+  default = "us-south-3"
+}
+
+variable "storage_profile" {
+  description = "Create SSH Key"
+  default = "10iops-tier"
+}
+
+variable "storage_capacity" {
+  description = "Storage capacity size to create"
+  default = "200"
+}
+
+variable "storage_zone" {
+  description = "Specify which storage zone to use"
   default = "us-south-3"
 }
 
