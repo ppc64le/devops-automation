@@ -1,5 +1,20 @@
+################################################################
+# Module to deploy a VM with specified applications installed
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Licensed Materials - Property of IBM
+#
+# ©Copyright IBM Corp. 2020
+#
+################################################################
+
 module  "simple_instance" {
- source = "github.com/jjalvare/simple_vm"
+ source = "github.com/jjalvare/simple_vm/modules/simple_vm"
  basename  = "${var.basename}"
  vpc_region  = "${var.vpc_region}"
  ibmcloud_api_key  = "${var.ibmcloud_api_key}"

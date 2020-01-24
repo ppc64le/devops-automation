@@ -1,5 +1,5 @@
 ################################################################
-# Module to deploy an VM with specified applications installed
+# Module to deploy a VM with specified applications installed
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,8 +45,6 @@ variable "vm_profile" {
   description = "VM profile to provision"
   default = "cp2-2x4"
 }
-
 #################################################
 ##               End of variables              ##
 #################################################
-

@@ -1,6 +1,6 @@
 # Deploy a MEAN stack using Terraform on IBM Cloud VPC 
 
-Deploy a Mongodb Express Angular Nodejs (MEAN) stack on Ubuntu 18.04 ppc64le running in IBM Cloud VPC
+Deploy a MongoDB Express Angular Nodejs (MEAN) stack on Ubuntu 18.04 ppc64le running in IBM Cloud VPC
 
 ## Prerequisites 
 
@@ -22,7 +22,7 @@ After install you can access the default web page of Ubuntu VM by IP:
 
     http://<IP>/  
 
-To validate Mongodb successful connection, register your email name and address in the login page.
+To validate MongoDB successful connection, register your email name and address in the login page.
 
 To run the example, you will need to:
 
