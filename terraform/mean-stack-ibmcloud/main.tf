@@ -14,9 +14,10 @@
 ################################################################
 
 module  "simple_instance" {
- source = "github.com/jjalvare/simple_vm/modules/simple_vm"
+ source = "github.com/ppc64le/devops-automation/terraform/modules/simple_vm"
  basename  = "${var.basename}"
  vpc_region  = "${var.vpc_region}"
+ vpc_zone  = "${var.vpc_zone}"
  ibmcloud_api_key  = "${var.ibmcloud_api_key}"
  vm_profile  = "${var.vm_profile}"
  boot_image_id  = "${var.boot_image_id}"
