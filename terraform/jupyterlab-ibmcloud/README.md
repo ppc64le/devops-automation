@@ -1,6 +1,9 @@
-# Deploy a Jupyter Lab Workspace on IBM Cloud VPC 
+# Deploy a JupyterLab Workspace on IBM Cloud VPC 
 
-Deploy a Juptyer Lab on Ubuntu 18.04 ppc64le running in IBM Cloud VPC
+Deploy a JupyterLab on Ubuntu 18.04 ppc64le running in IBM Cloud VPC. Within a JupyterLab one can run Python code interactively,
+enable code in a text file for scientific research, drop down into a bash terminal, in a flexible and integrated manner. 
+Whats even more exciting this JuypterLab is setup to support GPU workloads where you can train your Artificial Intelligence 
+model at very fast speeds, literally supercomputer fast.
 
 ## Prerequisites 
 
@@ -13,19 +16,19 @@ Deploy a Juptyer Lab on Ubuntu 18.04 ppc64le running in IBM Cloud VPC
 This deployment:
   1. Creates a Linux Ubuntu ppc64le VM server on IBM Cloud VPC 
   2. Creates a new ssh key to login 
-  3. Opens Ports 80, 443 in VPC Security Group port to access the Jupter Lab Workspace 
-  4. Opens Ports 22 to access SSH console
+  3. Opens Ports 80, 443 in VPC Security Group port to access the JupyterLab Workspace 
+  4. Opens Port 22 to access SSH console
   5. Sets up GPU Driver 418.39 and starts services
   6. Loads CUDA 10.1 Libraries to interact in docker environment
-  7. Downloads jupyter lab from docker hub: jjalvare/tensorflow-gpu-jupyter
+  7. Downloads JupyterLab from Docker hub: jjalvare/tensorflow-gpu-jupyter
   8. Run jjalvare/tensorflow-gpu-jupyter as tensorflow-gpu-jupyter
 
 ### Install Complete 
-After install you can access the default Jupyter Lab Web page of Ubuntu VM by IP:
+After install you can access the default JupyterLab web page of Ubuntu VM by IP:
 
     http://<IP>/?token=<token> 
 
-The token can be found in your output of terraform:
+The token can be found in your output of Terraform:
 
 ```console
 null_resource.provisioners (remote-exec): Jupyter Lab Web Server at: http://192.168.1.68/?token=72d5sometokenwithaverylongnumberbae1c53
@@ -96,7 +99,7 @@ To run the example, you will need to:
 3. Obtain your [IBM Cloud API key](https://cloud.ibm.com) (needed for step #4)
 4. Update the variables.tf file to suit your needs
 
-## Provision Environment in IBM Cloud with terraform
+## Provision Environment in IBM Cloud with Terraform
 Next, you can run the example by invoking...
 
 The planning phase (validates the Terraform configuration)
