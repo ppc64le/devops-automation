@@ -28,6 +28,10 @@ resource ibm_is_subnet "subnet" {
   total_ipv4_address_count = 16
 }
 
+data ibm_is_image "ubuntu" {
+  name = "ibm-ubuntu-18-04-3-minimal-ppc64le-2"
+}
+
 # Create an SSH key which will be used for provisioning by this template, and for debug purposes
 resource "ibm_is_ssh_key" "public_key" {
   name = "${var.basename}-public-key"
@@ -57,9 +61,8 @@ resource "ibm_is_security_group_rule" "sg1-tcp-rule" {
 
 resource "ibm_is_instance" "vm" {
   name = "${var.basename}-vm1"
-  image = "${var.boot_image_id}"
+  image = "${data.ibm_is_image.ubuntu.id}" 
   profile = "${var.vm_profile}"
-
   primary_network_interface = {
     subnet = "${ibm_is_subnet.subnet.id}"
   }

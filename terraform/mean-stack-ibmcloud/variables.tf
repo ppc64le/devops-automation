@@ -22,11 +22,6 @@ variable "basename" {
   default = "some"
 }
 
-variable "boot_image_id" {
-  description = "UUID of the base image for the virtual server (should be an Ubuntu 18.04 base)"
-  default = "r006-d2f5be47-f7fb-4e6e-b4ab-87734fd8d12b"
-}
-
 variable "vpc_region" {
   description = "Target region to create this instance"
   default = "us-south"

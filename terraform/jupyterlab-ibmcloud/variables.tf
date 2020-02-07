@@ -12,13 +12,14 @@
 # ©Copyright IBM Corp. 2020
 #
 ################################################################
+
 variable "ibmcloud_api_key" {
     description = "Denotes the IBM Cloud API key to use"
 }
 
 variable "basename" {
   description = "Denotes the name of the VPC to deploy into. Resources associated will be prepended with this name."
-  default = "some"
+  default = "jupyter-vpc"
 }
 
 variable "vpc_region" {
@@ -28,18 +29,5 @@ variable "vpc_region" {
 
 variable "vpc_zone" {
   description = "Target availbility zone to create this instance"
-  default = "us-south-3"
+  default = "us-south-2"
 }
-
-variable "tcp_ports" {
-  description = "TCP ports to open in VPC security group"
-  default = "22,80,443"
-}
-
-variable "vm_profile" {
-  description = "VM profile to provision"
-  default = "cp2-2x4"
-}
-#################################################
-##               End of variables              ##
-#################################################

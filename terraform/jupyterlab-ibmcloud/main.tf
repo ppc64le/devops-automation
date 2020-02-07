@@ -12,6 +12,10 @@
 # ©Copyright IBM Corp. 2020
 #
 ################################################################
+locals {
+  vm_profile = "gp2-8x64x2"
+}
+
 
 module  "simple_instance" {
  source = "github.com/ppc64le/devops-automation/terraform/modules/simple_vm"
@@ -19,7 +23,7 @@ module  "simple_instance" {
  vpc_region  = "${var.vpc_region}"
  vpc_zone  = "${var.vpc_zone}"
  ibmcloud_api_key  = "${var.ibmcloud_api_key}"
- vm_profile  = "${var.vm_profile}"
+ vm_profile  = "${local.vm_profile}"
 }
 
 resource "null_resource" "provisioners" {
@@ -41,19 +45,18 @@ resource "null_resource" "provisioners" {
       private_key = "${module.simple_instance.instance_ssh_private}"
     }
   }
-  
+   
   provisioner "remote-exec" {
     inline = [
       "set -e",
-      "export VERSION=v12.14.1",
-      "export DISTRO=linux-ppc64le",
-      "chmod u+x /tmp/scripts*/*",
-      "/tmp/scripts/wait_for_boot.sh",
-      "/tmp/scripts/setup_mongodb.sh",
-      "/tmp/scripts/install_nodejs.sh",
-      "export PATH=/usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin:$PATH", 
-      "/tmp/scripts/setup_path.sh",
-      "/tmp/scripts/setup_app.sh"
+      "set -x",
+      "export SSH_IP=${module.simple_instance.ip_address}",
+      "chmod +x /tmp/scripts*/*",
+      "/tmp/scripts/install_common.sh",
+      "/tmp/scripts/install_cuda.sh",
+      "/tmp/scripts/install_docker.sh",
+      "/tmp/scripts/install_runtime.sh",
+      "/tmp/scripts/setup_instance.sh",
     ]
     connection {
       type = "ssh"
@@ -65,3 +68,4 @@ resource "null_resource" "provisioners" {
     }
   }
 }
+
