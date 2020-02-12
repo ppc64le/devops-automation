@@ -54,6 +54,22 @@ To run the example, you will need to:
 3. Obtain your [IBM Cloud API key](https://cloud.ibm.com) (needed for step #4)
 4. Update the variables.tf file to suit your needs
 
+## Provision Environment in IBM Cloud Schematics 
+### Create Workspace 
+![](./assets/images/SchematicsWorkspaceUI.png)
+### Click Retrieve Input Variables and Insert IBM Cloud API Key 
+![](./assets/images/RetrieveInputVariablesAdnInputAPIKey.png)
+### Generate Plan and Apply Plan 
+![](./assets/images/ClickGenerateAndApplyPlan.png)
+### Access JupyterLab 
+#### Get Token from Schematics Output 
+![](./assets/images/NotebookToken.png)
+#### Access JupyterLab in Browser 
+![](./assets/images/copyToBrowser.png)
+### Verify GPUs 
+![](./assets/images/VerifyGPUsAreLoaded.png)
+### Run Tensorflow Sample Notebook 
+![](./assets/images/RunClassificationTensorflowSampleNotebook.png)
 ## Provision Environment in IBM Cloud with Terraform
 Next, you can run the example by invoking...
 
