@@ -1,0 +1,11 @@
+---
+- name: List available PowerVC Networks
+  hosts: localhost
+  tasks:
+    - name: Retrieve list of all networks
+      os_networks_info:
+      register: result
+
+    - name: Print Network list
+      debug:
+        var: result.openstack_networks
