@@ -7,8 +7,8 @@ model at very fast speeds, literally supercomputer fast.
 
 ## Prerequisites 
 
-1. Terraform >= 0.11.14 
-2. IBM Cloud Terraform Provider >= 0.20.0 
+1. Terraform = 0.11.14 
+2. IBM Cloud Terraform Provider = 0.20.0 
 3. IBM Cloud API Key with authorization to provision in IBM Cloud VPC 
 
 ## Overview

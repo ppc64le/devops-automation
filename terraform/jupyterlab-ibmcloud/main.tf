@@ -12,9 +12,6 @@
 # ©Copyright IBM Corp. 2020
 #
 ################################################################
-locals {
-  vm_profile = "gp2-8x64x2"
-}
 
 
 module  "simple_instance" {
@@ -23,7 +20,7 @@ module  "simple_instance" {
  vpc_region  = "${var.vpc_region}"
  vpc_zone  = "${var.vpc_zone}"
  ibmcloud_api_key  = "${var.ibmcloud_api_key}"
- vm_profile  = "${local.vm_profile}"
+ vm_profile  = "${var.vsi_profile}"
 }
 
 resource "null_resource" "provisioners" {
