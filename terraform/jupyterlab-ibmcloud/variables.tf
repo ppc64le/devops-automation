@@ -31,3 +31,8 @@ variable "vpc_zone" {
   description = "Target availbility zone to create this instance"
   default = "us-south-2"
 }
+
+variable "vsi_profile" {
+  description = "Target VSI profile to use with instance"
+  default = "gp2-24x224x2"
+}
