@@ -6,7 +6,7 @@ EXTERNAL_STORAGE="${EXTERNAL_STORAGE:-/mnt}"
 mkdir -p $EXTERNAL_STORAGE 
 mv  /tmp/scripts/app $EXTERNAL_STORAGE
 APP_DIR=$EXTERNAL_STORAGE"/app"
-ENV_FILE=$EXTERNAL_STORAGE"/app/database-api/.env"
+ENV_FILE=$EXTERNAL_STORAGE"/app/database-api/env.sh"
 # make build
 cd $APP_DIR/database-api/
 export $(xargs < $ENV_FILE)

@@ -7,7 +7,7 @@ sudo apt-get update && \
 
 EXTERNAL_STORAGE="${EXTERNAL_STORAGE:-/tmp/scripts/}"
 APP_DIR=$EXTERNAL_STORAGE"/app"
-ENV_FILE=$EXTERNAL_STORAGE"app/database-api/.env"
+ENV_FILE=$EXTERNAL_STORAGE"app/database-api/env.sh"
 
 sed -i "/#/d" $ENV_FILE 
 sed -i -E "s/(API_AUTH_PASSWORD=).*/\1${API_AUTH_PASSWORD}/g" $ENV_FILE 
