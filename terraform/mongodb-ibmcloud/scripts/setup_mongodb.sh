@@ -7,7 +7,7 @@ sudo apt-get update && \
 
 EXTERNAL_STORAGE="${EXTERNAL_STORAGE:-/tmp/scripts/}"
 APP_DIR=$EXTERNAL_STORAGE"/app"
-ENV_FILE=$EXTERNAL_STORAGE"/app/database-api/.env"
+ENV_FILE=$EXTERNAL_STORAGE"app/database-api/.env"
 
 sed -i "/#/d" $ENV_FILE 
 sed -i -E "s/(API_AUTH_PASSWORD=).*/\1${API_AUTH_PASSWORD}/g" $ENV_FILE 
@@ -22,7 +22,7 @@ export MONGO_INITDB_ROOT_PORT="${API_DB_PORT}"
 export MONGO_INITDB_DATABASE="${API_DB_NAME}"
 export MONGO_NON_ROOT_USERNAME="${API_DB_USERNAME}"
 export MONGO_NON_ROOT_PASSWORD="${API_DB_PASSWORD}"
-bash /tmp/scripts/app/database-api/mongodb/mongo-init.sh
+bash $APP_DIR/database-api/mongodb/mongo-init.sh
 # initialize external storage
 [[ $EXTERNAL_STORAGE  !=  "/tmp/scripts/" ]] && {
     echo "Installing external storage for mongodb"
