@@ -74,15 +74,10 @@ resource "null_resource" "provisioners" {
       "export API_DB_NAME=db",
       "export API_UI_USERNAME=admin",
       "export API_UI_PASSWORD=${random_password.ui_password.result}",
+      "export SCRIPT_PATH=/tmp/scripts/",
       "chmod u+x /tmp/scripts*/*",
-      "/tmp/scripts/wait_for_boot.sh",
-      "/tmp/scripts/install_common.sh",
-      "/tmp/scripts/setup_mongodb.sh",
-      "/tmp/scripts/install_docker.sh",
-      "/tmp/scripts/install_nodejs.sh",
       "export PATH=/usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin:$PATH",
-      "/tmp/scripts/setup_path.sh",
-      "/tmp/scripts/setup_app.sh"
+      "/tmp/scripts/install_app.sh"
     ]
     connection {
       type = "ssh"
