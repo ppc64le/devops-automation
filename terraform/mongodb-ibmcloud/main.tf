@@ -20,7 +20,7 @@ module  "simple_instance" {
  vpc_zone  = "${var.vpc_zone}"
  ibmcloud_api_key  = "${var.ibmcloud_api_key}"
  vm_profile  = "${var.vm_profile}"
- tcp_ports  = "22,80,443"
+ tcp_ports  = "22,80,443,27017"
 }
 
 resource "random_password" "db_password" {

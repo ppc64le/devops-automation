@@ -40,7 +40,12 @@ To run the example, you will need to:
 ### Apply Workspace 
 ![](./assets/images/apply_workspace.png)
 ### Login to Mongo Express
+#### Retrieve login information
+![](./assets/images/login_credentials.png)
+#### Login to Mongo Express 
+![](./assets/images/login.png)
 ### Create Collection
+![](./assets/images/create_a_collection.png)
 
 
 ## Provision Environment in IBM Cloud with terraform
