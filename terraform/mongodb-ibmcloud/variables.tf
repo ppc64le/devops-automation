@@ -19,7 +19,7 @@ variable "ibmcloud_api_key" {
 
 variable "basename" {
   description = "Denotes the name of the VPC to deploy into. Resources associated will be prepended with this name."
-  default = "some"
+  default = "mongo"
 }
 
 variable "vpc_region" {

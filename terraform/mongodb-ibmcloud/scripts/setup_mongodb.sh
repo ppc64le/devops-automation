@@ -23,6 +23,8 @@ export MONGO_INITDB_DATABASE="${API_DB_NAME}"
 export MONGO_NON_ROOT_USERNAME="${API_DB_USERNAME}"
 export MONGO_NON_ROOT_PASSWORD="${API_DB_PASSWORD}"
 bash $APP_DIR/database-api/mongodb/mongo-init.sh
+sed -i -E "s/#(auth.*)/\1/g" /etc/mongodb.conf
+sudo service mongodb restart
 # initialize external storage
 [[ $EXTERNAL_STORAGE  !=  "/tmp/scripts/" ]] && {
     echo "Installing external storage for mongodb"

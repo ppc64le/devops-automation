@@ -16,8 +16,16 @@ output "Access Mongo Express Web Page" {
   value = "http://${module.simple_instance.ip_address}/"
 }
 
-output "Mongo Express Web Page Password" {
+output "Mongo Express Web Page" {
   value = "\nuser: admin\npassword: ${random_password.ui_password.result}"
+}
+
+output "Root DB Password" {
+  value = "\n${random_password.root_db_password.result}"
+}
+
+output "DB Password" {
+  value = "\n${random_password.db_password.result}"
 }
 
 output "Instance SSH Private Key (for debug purposes)" {
