@@ -1,5 +1,5 @@
 #!/bin/bash -xe
-# This scripts installs mongodb
+# This scripts installs and initializes mongodb
 # If external storage is setup it will mount the external storage for use
 sudo apt-get update && \
    sudo apt-get install -y mongodb-server jq 
