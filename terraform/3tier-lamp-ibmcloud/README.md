@@ -21,9 +21,9 @@ This deployment provisions:
   6. Sets up Redundant MySQL instances and starts services 
   7. Sets up a Load Balancer for redundant Wordpress instances 
 
-After install you can access the Wordpress web page of Ubuntu VM by the load balancer:
+After install you can access the Wordpress web page by the load balancer:
 
-    https://<random_generated_number>-<country>-<region>.lb.appdomain.cloud/  
+    http://<random_generated_number>-<country>-<region>.lb.appdomain.cloud/  
 
 To run the example, you will need to:
 
@@ -33,6 +33,17 @@ To run the example, you will need to:
 4. Update the variables.tf file to suit your needs
 
 ## Provision Environment in IBM Cloud with IBM Cloud Schematics 
+
+### Create workspace 
+![](./assets/images/create_workspace.png)
+### Input Schematics Variables
+![](./assets/images/retrieve_input_variables.png)
+### Apply Workspace 
+![](./assets/images/apply_workspace.png)
+### Retrieve Login information
+![](./assets/images/login_credentials.png)
+### Access Wordpress Application 
+![](./assets/images/login.png)
 
 ## Provision Environment in IBM Cloud with terraform
 Next, you can run the example by invoking...
