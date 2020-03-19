@@ -16,6 +16,7 @@ locals {
   db_password = "${var.db_password == "none"?random_password.db_password.result:var.db_password}"
   app_password = "${var.app_password == "none"?random_password.app_password.result:var.app_password}"
   db_name = "wordpress"
+  basename = "${format("%s-%s", var.basename, random_string.random_name.result)}"
   db_user = "root"
   subnets = ["0,0", "1,1"]
   security_groups = ["22,80","22,3306"] 
@@ -27,6 +28,15 @@ resource "random_password" "db_password" {
   override_special = "!@_"
 }
 
+resource "random_string" "random_name" {
+  length = 8
+  special = true
+  lower = true
+  upper = false 
+  number = false 
+  special = false 
+}
+
 resource "random_password" "app_password" {
   length = 16
   special = true
@@ -35,7 +45,7 @@ resource "random_password" "app_password" {
 
 
 resource "ibm_is_vpc" "vpc" {
-  name = "${var.basename}-vpc"
+  name = "${local.basename}-vpc"
 }
 
 resource "null_resource" "service_depends_on_cidr1" {
@@ -52,7 +62,7 @@ resource "null_resource" "service_depends_on_cidr2" {
 
 resource ibm_is_subnet "subnet0" { 
   count = 0
-  name = "${format("%s-subnet%03d", var.basename , 1)}"
+  name = "${format("%s-subnet%03d", local.basename , 1)}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   zone = "${var.zone}"
   ip_version = "ipv4"
@@ -62,7 +72,7 @@ resource ibm_is_subnet "subnet0" {
 
 resource ibm_is_subnet "subnet1" { 
   count = 0
-  name = "${format("%s-subnet%03d", var.basename , 2)}"
+  name = "${format("%s-subnet%03d", local.basename , 2)}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   zone = "${var.zone}"
   ip_version = "ipv4"
@@ -72,7 +82,7 @@ resource ibm_is_subnet "subnet1" {
 
 resource ibm_is_subnet "subnet" {
   count = "${length(local.subnets)}"
-  name = "${format("%s-subnet%03d", var.basename , count.index +1)}"
+  name = "${format("%s-subnet%03d", local.basename , count.index +1)}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   zone = "${var.zone}"
   ip_version = "ipv4"
@@ -94,7 +104,7 @@ resource "null_resource" "service_depends_on1" {
 
 resource "ibm_is_vpc_address_prefix" "cidr01" {
   count= 0
-  name = "${format("%s-prefix%03d", var.basename , 1)}"
+  name = "${format("%s-prefix%03d", local.basename , 1)}"
   zone = "${var.zone}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   cidr = "10.10.11.0/28"
@@ -103,7 +113,7 @@ resource "ibm_is_vpc_address_prefix" "cidr01" {
 
 resource "ibm_is_vpc_address_prefix" "cidr02" {
   count = 0
-  name = "${format("%s-prefix%03d", var.basename , 2)}"
+  name = "${format("%s-prefix%03d", local.basename , 2)}"
   zone = "${var.zone}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   cidr = "10.10.12.0/28"
@@ -111,7 +121,7 @@ resource "ibm_is_vpc_address_prefix" "cidr02" {
 }
 resource "ibm_is_vpc_address_prefix" "cidr1" {
   count= 1
-  name = "${format("%s-prefix%03d", var.basename , 1)}"
+  name = "${format("%s-prefix%03d", local.basename , 1)}"
   zone = "${var.zone}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   cidr = "10.10.11.0/28"
@@ -119,7 +129,7 @@ resource "ibm_is_vpc_address_prefix" "cidr1" {
 
 resource "ibm_is_vpc_address_prefix" "cidr2" {
   count = 1
-  name = "${format("%s-prefix%03d", var.basename , 2)}"
+  name = "${format("%s-prefix%03d", local.basename , 2)}"
   zone = "${var.zone}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   cidr = "10.10.12.0/28"
@@ -132,14 +142,14 @@ data ibm_is_image "ubuntu" {
 
 # Create an SSH key which will be used for provisioning by this template, and for debug purposes
 resource "ibm_is_ssh_key" "public_key" {
-  name = "${var.basename}-public-key"
+  name = "${local.basename}-public-key"
   public_key = "${tls_private_key.ssh_key_keypair.public_key_openssh}"
 }
 
 # Create an SSH key which will be used for provisioning by this template, and for debug purposes
 # resource "ibm_is_ssh_key" "public_key" {
   # count = "${length(var.keys)}"
-  # name = "${format("%s-public-key-%03d", var.basename , count.index +1)}"
+  # name = "${format("%s-public-key-%03d", local.basename , count.index +1)}"
   # public_key = "${element(var.keys, count.index)}"
 # }
 #
@@ -147,7 +157,7 @@ resource "ibm_is_ssh_key" "public_key" {
 
 resource "ibm_is_security_group" "security_groups" {
     count = "${length(local.security_groups)}" 
-    name = "${format("%s-sg-%03d", var.basename , count.index +1)}"
+    name = "${format("%s-sg-%03d", local.basename , count.index +1)}"
     vpc = "${ibm_is_vpc.vpc.id}"
 }
 
@@ -171,7 +181,7 @@ resource "ibm_is_security_group_rule" "sg-tcp-rule-all" {
 
 
 resource "ibm_is_instance" "vm1" {
-  name = "${format("%s-appserv-%03d", var.basename , 1)}"
+  name = "${format("%s-appserv-%03d", local.basename , 1)}"
   image = "${data.ibm_is_image.ubuntu.id}"
   profile = "${var.vm_profile}"
   primary_network_interface = {
@@ -194,7 +204,7 @@ resource "ibm_is_instance" "vm1" {
 }
 
 resource "ibm_is_instance" "vm2" {
-  name = "${format("%s-appserv-%03d", var.basename , 2)}"
+  name = "${format("%s-appserv-%03d", local.basename , 2)}"
   image = "${data.ibm_is_image.ubuntu.id}"
   profile = "${var.vm_profile}"
   primary_network_interface = {
@@ -217,7 +227,7 @@ resource "ibm_is_instance" "vm2" {
 }
 
 resource "ibm_is_instance" "vm3" {
-  name = "${format("%s-dbserv-%03d", var.basename , 3)}"
+  name = "${format("%s-dbserv-%03d", local.basename , 3)}"
   image = "${data.ibm_is_image.ubuntu.id}"
   profile = "${var.vm_profile}"
   primary_network_interface = {
@@ -234,7 +244,7 @@ resource "ibm_is_instance" "vm3" {
 }
 
 resource "ibm_is_instance" "vm4" {
-  name = "${format("%s-dbserv-%03d", var.basename , 4)}"
+  name = "${format("%s-dbserv-%03d", local.basename , 4)}"
   image = "${data.ibm_is_image.ubuntu.id}"
   profile = "${var.vm_profile}"
   primary_network_interface = {
@@ -253,25 +263,25 @@ resource "ibm_is_instance" "vm4" {
 
 #Create a public floating IP so that the instance is available on the Internet
 resource "ibm_is_floating_ip" "fip1" {
-  name = "${format("%s-fip-%03d", var.basename , 1)}"
+  name = "${format("%s-fip-%03d", local.basename , 1)}"
   target = "${ibm_is_instance.vm1.primary_network_interface.0.id}" 
 }
 
 #Create a public floating IP so that the instance is available on the Internet
 resource "ibm_is_floating_ip" "fip2" {
-  name = "${format("%s-fip-%03d", var.basename , 2)}"
+  name = "${format("%s-fip-%03d", local.basename , 2)}"
   target = "${ibm_is_instance.vm2.primary_network_interface.0.id}" 
 }
 
 #Create a public floating IP so that the instance is available on the Internet
 resource "ibm_is_floating_ip" "fip3" {
-  name = "${format("%s-fip-%03d", var.basename , 3)}"
+  name = "${format("%s-fip-%03d", local.basename , 3)}"
   target = "${ibm_is_instance.vm3.primary_network_interface.0.id}" 
 }
 
 #Create a public floating IP so that the instance is available on the Internet
 resource "ibm_is_floating_ip" "fip4" {
-  name = "${format("%s-fip-%03d", var.basename , 4)}"
+  name = "${format("%s-fip-%03d", local.basename , 4)}"
   target = "${ibm_is_instance.vm4.primary_network_interface.0.id}"
 }
 #
