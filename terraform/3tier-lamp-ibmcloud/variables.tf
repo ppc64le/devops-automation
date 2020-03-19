@@ -31,22 +31,10 @@ variable "vm_profile" {
   default = "cp2-2x4"
 }
 
-variable "subnets" {
-  description = "Should we create a vpc for this VM"
-  type = "list"
-  default = ["0,0", "1,1"]
-}
-
 variable "zone" {
   description = "Should we create a vpc for this VM"
   type = "string"
   default = "us-south-3" 
-}
-
-variable "security_groups" {
-  description = "Comma separated "
-  type = "list"
-  default = ["22,80","22,3306"]
 }
 
 variable "db_password" {
@@ -58,7 +46,7 @@ variable "db_password" {
 variable "app_password" {
   description = "Application Password to use when initially configuring the Wordpress application"
   type = "string"
-  default = "someverylongpasswordsome12" 
+  default = "none" 
 }
 
 variable "app_user" {

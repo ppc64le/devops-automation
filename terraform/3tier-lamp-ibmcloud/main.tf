@@ -17,6 +17,8 @@ locals {
   app_password = "${var.app_password == "none"?random_password.app_password.result:var.app_password}"
   db_name = "wordpress"
   db_user = "root"
+  subnets = ["0,0", "1,1"]
+  security_groups = ["22,80","22,3306"] 
 }
 
 resource "random_password" "db_password" {
@@ -69,7 +71,7 @@ resource ibm_is_subnet "subnet1" {
 }
 
 resource ibm_is_subnet "subnet" {
-  count = "${length(var.subnets)}"
+  count = "${length(local.subnets)}"
   name = "${format("%s-subnet%03d", var.basename , count.index +1)}"
   vpc  = "${ibm_is_vpc.vpc.id}"
   zone = "${var.zone}"
@@ -144,25 +146,25 @@ resource "ibm_is_ssh_key" "public_key" {
 
 
 resource "ibm_is_security_group" "security_groups" {
-    count = "${length(var.security_groups)}" 
+    count = "${length(local.security_groups)}" 
     name = "${format("%s-sg-%03d", var.basename , count.index +1)}"
     vpc = "${ibm_is_vpc.vpc.id}"
 }
 
 resource "ibm_is_security_group_rule" "sg-tcp-rule" {
-  count = "${length(split(",", var.security_groups[0])) *length(var.security_groups)}" 
-  group = "${element(ibm_is_security_group.security_groups.*.id, count.index/ length(var.security_groups) )}" 
+  count = "${length(split(",", local.security_groups[0])) *length(local.security_groups)}" 
+  group = "${element(ibm_is_security_group.security_groups.*.id, count.index/ length(local.security_groups) )}" 
   direction = "inbound"
   remote = "0.0.0.0/0"
   tcp = {
-    port_min = "${element(split(",", var.security_groups[count.index / length(var.security_groups)]), count.index % length(var.security_groups))}" 
-    port_max = "${element(split(",", var.security_groups[count.index / length(var.security_groups)]), count.index % length(var.security_groups))}" 
+    port_min = "${element(split(",", local.security_groups[count.index / length(local.security_groups)]), count.index % length(local.security_groups))}" 
+    port_max = "${element(split(",", local.security_groups[count.index / length(local.security_groups)]), count.index % length(local.security_groups))}" 
   }
 }
 
 resource "ibm_is_security_group_rule" "sg-tcp-rule-all" {
-  count = "${length(split(",", var.security_groups[0])) *length(var.security_groups)}" 
-  group = "${element(ibm_is_security_group.security_groups.*.id, count.index/length(var.security_groups))}" 
+  count = "${length(split(",", local.security_groups[0])) *length(local.security_groups)}" 
+  group = "${element(ibm_is_security_group.security_groups.*.id, count.index/length(local.security_groups))}" 
   direction = "outbound"
   remote = "0.0.0.0/0"
 }

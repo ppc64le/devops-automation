@@ -1,6 +1,8 @@
 # Deploy a 3 Tier Web Application using Terraform on IBM Cloud VPC 
 
-Deploy a 3 Tier Wordpress Application on Ubuntu 18.04 ppc64le running in IBM Cloud VPC
+Deploy a 3 Tier Wordpress Application on Ubuntu 18.04 ppc64le running in IBM Cloud VPC.
+This template follows the [3tier VPC API example](https://github.com/ibm-cloud-architecture/tutorial-vpc-3tier-networking/blob/master/API.md) provided in IBM Cloud.  
+
 
 ## Prerequisites 
 
@@ -19,17 +21,9 @@ This deployment provisions:
   6. Sets up Redundant MySQL instances and starts services 
   7. Sets up a Load Balancer for redundant Wordpress instances 
 
-After install you can access the Wordpress web page of Ubuntu VM by IP:
+After install you can access the Wordpress web page of Ubuntu VM by the load balancer:
 
-    https://<IP>/  
-
-To validate MariaDB successful connection:  
-
-    https://<IP>/todo_list.php 
-
-For information on system run:  
-  
-    https://<IP>/info.php 
+    https://<random_generated_number>-<country>-<region>.lb.appdomain.cloud/  
 
 To run the example, you will need to:
 
@@ -38,9 +32,7 @@ To run the example, you will need to:
 3. Obtain your [IBM Cloud API key](https://cloud.ibm.com) (needed for step #4)
 4. Update the variables.tf file to suit your needs
 
-### Add your own web page
-  1. Modify ./scripts/add\_web\__pages.sh and copy your own /var/www/html project directory 
-  2. Modify ./scripts/setup\_db.sh to point to your own db directory 
+## Provision Environment in IBM Cloud with IBM Cloud Schematics 
 
 ## Provision Environment in IBM Cloud with terraform
 Next, you can run the example by invoking...
