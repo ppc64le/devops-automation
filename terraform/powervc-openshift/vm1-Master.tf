@@ -199,7 +199,7 @@ resource "openstack_compute_instance_v2" "vm1" {
   }
 
   scheduler_hints {
-    group = "${openstack_compute_servergroup_v2.vm1-servergroup-affinity[0].id}"
+    group = var.vm1_number > 1 ? openstack_compute_servergroup_v2.vm1-servergroup-affinity[0].id : ""
   }
 
   #Cloud-Init user-data
