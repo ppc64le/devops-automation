@@ -1,0 +1,3 @@
+plugin: openstack
+expand_hostvars: true
+fail_on_errors: true

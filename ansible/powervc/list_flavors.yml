@@ -1,0 +1,14 @@
+---
+- name: List available PowerVC Flavors
+  hosts: localhost
+  tasks:
+    - name: Retrieve list of all public flavors
+      os_flavor_info:
+        vcpus: ">=4"   # Optional filters
+        ram: ">16000"  # See module docs for more options
+      register: result
+
+    - name: Print flavor list
+      debug:
+        msg: "{{ result | json_query('openstack_flavors[?is_public==`true`].
+              {name: name, id: id, ram: ram, vcpus: vcpus}') }}"
