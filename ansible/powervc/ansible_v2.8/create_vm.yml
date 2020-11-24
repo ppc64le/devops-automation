@@ -7,13 +7,13 @@
     network_name: YOUR_NET_NAME  # e.g.: static_network
   tasks:
     - name: Create an SSH Key Pair
-      openstack.cloud.os_keypair:
+      os_keypair:
         state: present
         name: ansible-ssh-key
         public_key_file: "{{ ansible_env.HOME }}/.ssh/id_rsa.pub"
 
     - name: Create a new VM instance
-      openstack.cloud.os_server:
+      os_server:
         state: present
         name: my-new-vm
         image: "{{ iamge_id }}"

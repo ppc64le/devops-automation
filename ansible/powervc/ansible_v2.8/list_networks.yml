@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: Retrieve list of all networks
-      openstack.cloud.os_networks_info:
+      os_networks_info:
       register: result
 
     - name: Print Network list
