@@ -3,7 +3,7 @@
   hosts: localhost
   tasks:
     - name: Retrieve list of all AIX images
-      openstack.cloud.os_image_info:
+      os_image_info:
         properties:
           os_distro: aix  # remove this line to list all images
       register: result
