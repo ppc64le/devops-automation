@@ -9,4 +9,4 @@ The illustrated concepts can be adopted to other database and/or operating syste
 ## Available Projects
 
 ### __*powervc-oradbaas*__ : Deploying Oracle® Database as a Service with IBM PowerVC
-### __*cam-ora*__: Deploying Oracle® Database with IBM Cloud Automation Manager and PowerVC
+### __*cam-ora*__: Deploying Oracle® Database with IBM Terraform and Service Automation (also known as Cloud Automation Manager) and PowerVC
