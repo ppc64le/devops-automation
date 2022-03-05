@@ -1,0 +1,3 @@
+{% for host in groups['cluster'] %}
+{{ hostvars[host]['ansible_facts']['hostname'] }}
+{% endfor %}

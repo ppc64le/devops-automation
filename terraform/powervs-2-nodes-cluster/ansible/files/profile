@@ -1,0 +1,6 @@
+export PATH=$PATH:/usr/es/sbin/cluster
+export PATH=$PATH:/usr/es/sbin/cluster/sbin
+export PATH=$PATH:/usr/es/sbin/cluster/utilities
+
+export EXPORTS=/usr/es/sbin/cluster/etc/exports
+export HAUTILS=/usr/es/sbin/cluster/utilities

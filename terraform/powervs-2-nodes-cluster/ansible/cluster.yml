@@ -1,0 +1,205 @@
+---
+- name: Configure 2-nodes PowerHA cluster
+  hosts: cluster
+  
+  tasks:
+    - name: Test if /home/root directory exists
+      stat:
+        path: /home/root
+      register: home_root_exists
+
+    - name: Create /home/root directory
+      shell:  "mkdir /home/root; chmod 700 /home/root; cp -rp /.ssh /home/root/"
+      when: home_root_exists.stat is defined 
+
+    - name: Update home directory for root user
+      user:
+        name:         root
+        home:         /home/root
+        createhome:   true
+        #force:        true
+        state:        present
+      register: root_home_update
+
+    - name: Move files to the new root's home directory
+      shell:  "mv /.sh_history /home/root/; mv /.ansible /home/root/; "
+      when: root_home_update.changed
+      ignore_errors:  yes
+
+    - name: Ensure the /home/root/.profile is updated
+      copy:
+        src:          files/profile
+        dest:         /home/root/.profile
+        owner:        root
+        group:        system
+        mode:         0644
+
+
+    - name: Ensure the /etc/hosts is updated
+      template:
+        src:          templates/hosts.j2
+        dest:         /etc/hosts
+        mode:         0664
+
+    - name: Resizing / to 2G
+      aix_filesystem:
+        filesystem: /
+        size: 2G
+        state: present
+
+    - name: Resizing /opt to 2G
+      aix_filesystem:
+        filesystem: /opt
+        size: 2G
+        state: present
+    
+    - name: Resizing /tmp to 1G
+      aix_filesystem:
+        filesystem: /tmp
+        size: 1G
+        state: present
+
+    - name: Resizing /var to 1G
+      aix_filesystem:
+        filesystem: /var
+        size: 1G
+        state: present
+
+    - name: Resizing /home to 512M
+      aix_filesystem:
+        filesystem: /home
+        size: 512M
+        state: present
+
+    - name: Resizing /usr to 3G
+      aix_filesystem:
+        filesystem: /usr
+        size: 3G
+        state: present
+
+    - name: "Gather the fileset facts"
+      ibm.power_aix.lpp_facts:
+
+    - name: Check whether a fileset called 'cluster.es.server.rte' is installed
+      debug:
+        msg: Fileset 'cluster.es.server.rte' is not installed
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: "Update MPIO configuration"
+      shell: "chdef -a algorithm=shortest_queue -c disk -s fcp -t mpioosdisk; chdef -a timeout_policy=fail_ctlr -c disk -s fcp -t mpioosdisk; chdef -a reserve_policy=no_reserve -c disk -s fcp -t mpioosdisk "
+      ignore_errors:  yes
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: "Restart RSCT"
+      shell: "rmdev -dl cluster0; /usr/sbin/rsct/install/bin/uncfgct -n; /usr/sbin/rsct/install/bin/cfgct; /usr/sbin/rsct/bin/rmcctrl -z; /usr/sbin/rsct/bin/rmcctrl -A; /usr/sbin/rsct/bin/rmcctrl -p; cfgmgr"
+      ignore_errors:  yes
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: Copy PowerHA installation files
+      copy:
+        src:          "files/{{ powerha_installer_file }}"
+        dest:         "/tmp/{{ powerha_installer_file }}"
+        owner:        root
+        group:        system
+        mode:         0755
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: "Extract PowerHA({{ powerha_installer_file }}) files"
+      shell: "gunzip -c /tmp/{{ powerha_installer_file }} | tar -xvf - "
+      args:
+        chdir: /tmp
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: "Clean /tmp/{{ powerha_installer_file }}"
+      file:
+        path: "/tmp/{{ powerha_installer_file }}"
+        state: absent
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+  
+    - name: Install PowerHA filesets
+      ibm.power_aix.installp:
+        install_list:
+          - cluster.es.client
+          - cluster.es.server
+          - cluster.es.cspoc
+          - cluster.license
+          - cluster.es.nfs
+          - cluster.adt.es
+          - cluster.es.assist
+          - cluster.es.migcheck
+          - cluster.man.en_US.es.data
+          - cluster.msg.en_US.assist
+          - cluster.msg.en_US.es
+        device: "{{ powerha_installer_path  }}"
+        action: apply
+        extend_fs: yes
+        dependencies: yes
+        agree_licenses: yes
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: "Clean {{ powerha_installer_path }} directory"
+      file:
+        path: "{{ powerha_installer_file }}"
+        state: absent
+      when: "'cluster.es.server.rte' not in ansible_facts.filesets"
+
+    - name: Ensure the /etc/cluster/rhosts is updated
+      template:
+        src:          templates/rhosts.j2
+        dest:         /etc/cluster/rhosts
+        mode:         0600
+      register: rhosts_file_update
+
+    - name: Restart service clcomd
+      service:
+        name: clcomd
+        state: restarted
+      when: rhosts_file_update.changed
+
+
+    - name: Test if /home/root/qha file exists
+      stat:
+        path: /home/root/qha
+      register: qha_file_exists
+
+    - name: Ensure the /tmp/prep.sh script is updated
+      template:
+        src:          templates/prep.sh.j2
+        dest:         /tmp/prep.sh
+        mode:         0755
+      when: qha_file_exists.stat is defined
+
+    - name: Cluster nodes preparation 
+      shell:  "/tmp/prep.sh"
+      when: qha_file_exists.stat is defined
+
+    - set_fact:
+        nodelist: "{{ groups['cluster'] | map('extract', hostvars, ['inventory_hostname']) | join(',') }}"
+      run_once:         yes
+      delegate_to:      "{{ cluster_node1 }}"
+
+    - name: Ensure the /tmp/cluster.sh script is updated
+      template:
+        src:            templates/cluster.sh.j2
+        dest:           /tmp/cluster.sh
+        mode:           0755
+      when: qha_file_exists.stat is defined
+      run_once:         yes
+      delegate_to:      "{{ cluster_node1 }}"
+
+    - name: Cluster configuration
+      shell:  "/tmp/cluster.sh"
+      when: qha_file_exists.stat is defined
+      run_once:         yes
+      delegate_to:      "{{ cluster_node1 }}"
+
+    - name: Ensure the /home/root/qha is updated
+      copy:
+        src:          files/qha
+        dest:         /home/root/qha
+        owner:        root
+        group:        system
+        mode:         0755
+
+      
+

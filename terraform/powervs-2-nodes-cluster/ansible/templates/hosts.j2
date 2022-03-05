@@ -1,0 +1,13 @@
+127.0.0.1               loopback localhost      # loopback (lo0) name/address
+#------------------------------------------------------------------------------
+# PowerHA IP Addresses and Labels
+#---------------------
+# Service IP address
+#---------------------
+{{ service_ip }}    {{ service_name }}             
+#------------------------
+# Persistent IP addresses
+#------------------------
+{% for host in groups['cluster'] %}
+{{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}  {{ hostvars[host]['ansible_facts']['hostname'] }}
+{% endfor %}

@@ -1,0 +1,72 @@
+#!/bin/sh
+
+#Create a cluster.
+#---------------------------------------------------------------
+/usr/es/sbin/cluster/utilities/clmgr add cluster {{ cluster_name }} NODES={{ nodelist }} REPOSITORIES=caa_repo0,caa_repo1 HEARTBEAT_TYPE=unicast 
+
+#Add service IPs.
+---------------------------------------------------------------
+/usr/es/sbin/cluster/utilities/clmgr add service_ip {{ service_name }}
+
+#Create resource group:
+#---------------------------------------------------------------
+/usr/es/sbin/cluster/utilities/clmgr add resource_group NFS_RG NODES={{ nodelist }} STARTUP=OHN FALLOVER=FNPN FALLBACK=NFB SERVICE_LABEL={{ service_name }}
+
+#Verify and synchronize cluster:
+#---------------------------------------------------------------
+/usr/es/sbin/cluster/utilities/clmgr sync cluster FIX=yes FORCE=yes
+/usr/es/sbin/cluster/utilities/clmgr online cluster WHEN=now MANAGE=auto BROADCAST=true CLINFO=true FORCE=true FIX=yes START_CAA=yes
+
+#Create nfs volume groups
+#---------------------------------------------------------------
+nfs_disks="NA"
+nfs_pvids="NA"
+for i in $(lspv | grep -v rootvg | grep -v caa | awk '{ print $1";"$2}')
+do
+    disk=$(echo $i | cut -d';' -f1)
+    pvid=$(echo $i | cut -d';' -f2)
+    if [[ $(bootinfo -s $disk) == 51200 ]]
+    then
+        if [[ $nfs_disks == "NA" ]]
+        then
+            nfs_disks="$disk"
+            nfs_pvids="$pvid"
+        else
+            nfs_disks="$nfs_disks $disk"
+            nfs_pvids="$nfs_pvids $pvid"
+        fi
+    fi
+done
+
+/usr/es/sbin/cluster/sbin/cl_mkvg -f -n -S -cspoc -n'{{ nodelist }}' -y 'nfsvg' -s'128' -P'2048' -V'101' -E -M'y' $nfs_pvids
+
+#Add nfsvg to NFS_RG :
+#---------------------------------------------------------------
+/usr/es/sbin/cluster/utilities/clmgr modify resource_group NFS_RG VOLUME_GROUP=nfsvg FORCED_VARYON=true VG_AUTO_IMPORT=false FS_BEFORE_IPADDR=true
+/usr/es/sbin/cluster/utilities/clmgr sync cluster
+
+#Update mirror pools
+chpv -p STG1 $(echo $nfs_disks | cut -d' ' -f1)
+chpv -p STG2 $(echo $nfs_disks | cut -d' ' -f2)
+
+#Create NFS filesystem :
+#---------------------------------------------------------------
+_CSPOC_MODE=both /usr/es/sbin/cluster/sbin/cl_mklv -cspoc -n'{{ nodelist }}' -y'nfslv' -t'jfs2' -s's' -u'12' -e'x' -c'2' -p copy1='STG1' -p copy2='STG2' nfsvg 1
+/usr/es/sbin/cluster/sbin/cl_crfs -cspoc -n'{{ nodelist }}' -v jfs2 -d'nfslv' -m'/export/nfs' -p'rw' -a agblksize='4096' '-a logname=INLINE'
+chfs -a size=32G /export/nfs
+
+
+/usr/es/sbin/cluster/utilities/clmgr modify resource_group NFS_RG EXPORT_FILESYSTEM='/export/nfs'
+
+
+#Node A:
+#---------------------------------------------------------------
+/usr/es/sbin/cluster/utilities//usr/es/sbin/cluster/utilities/clmgr modify cluster NETWORK_FAILURE_DETECTION_TIME=40 HEARTBEAT_FREQUENCY=50 GRACE_PERIOD=10 HEARTBEAT_FREQUENCY_DURING_LPM=300 LPM_POLICY=manage
+/usr/es/sbin/cluster/utilities/clmgr sync cluster FIX=yes FORCE=yes
+
+
+
+
+
+
+

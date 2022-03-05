@@ -1,0 +1,9 @@
+# Cluster variables:
+powerha_installer_file:     powerha726.tar.gz
+powerha_installer_path:     /tmp/powerha726
+cluster_name:               bs-cluster
+service_ip:                 192.168.4.200
+service_name:               bs-nfs-srv
+caa_disk_size_mb:           10240
+nfs_disk_size_mb:           51200
+cluster_node1:              bs-node1

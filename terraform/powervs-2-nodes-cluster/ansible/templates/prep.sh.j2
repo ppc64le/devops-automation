@@ -1,0 +1,41 @@
+#!/bin/sh
+
+#Update hdisks properties
+chdef -a algorithm=shortest_queue -c disk -s fcp -t mpioosdisk 
+chdef -a timeout_policy=fail_ctlr -c disk -s fcp -t mpioosdisk 
+chdef -a reserve_policy=no_reserve -c disk -s fcp -t mpioosdisk 
+
+for hdisk in $(lspv | grep -v rootvg | awk '{print $1}')
+do 
+    chdev -a reserve_policy=no_reserve -a algorithm=shortest_queue -l $hdisk -U 
+    chdev -l $hdisk -a pv=yes
+done
+
+cfgmgr
+
+i=0
+for pvid in $(lspv | grep -v rootvg | awk '{ print $2 }' | sort -u); do
+    hdisk=$(lspv | grep -v rootvg | grep $pvid | awk '{ print $1 }')
+    if [[ $(bootinfo -s $hdisk) == {{ caa_disk_size_mb }} ]]
+    then
+        rendev -l $hdisk -n "caa_repo$i"
+        (( i=i+1 ))
+    fi
+done
+
+for hdisk in $(lspv | grep -v rootvg | grep -v caa_repo | awk '{print $1}')
+do 
+    rmdev -dRl $hdisk
+done
+
+cfgmgr 
+
+for hdisk in $(lspv | grep -v rootvg | grep -v caa_repo | awk '{print $1}')
+do 
+    chdev -a reserve_policy=no_reserve -a algorithm=shortest_queue -l $hdisk -U 
+    chdev -l $hdisk -a pv=yes
+done
+
+
+
+
