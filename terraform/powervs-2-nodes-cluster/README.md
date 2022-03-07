@@ -5,7 +5,7 @@ Deploy two AIX 7.2 VMs with shared volumes for CAA and DATA using Terraform. Ins
 ## Prerequisites 
 
 1. Terraform = 1.1.6
-2. IBM Cloud Terraform Provider ~> 1.38.0 
+2. IBM Cloud Terraform Provider ~> 1.39.0 
 3. IBM Power Systems Virtual Server Service
 4. A private network is required for communication between different Power Systems Virtual Server instances (cluster nodes)
 5. IBM Cloud API Key with authorization to provision in IBM Power Systems Virtual Server Service
