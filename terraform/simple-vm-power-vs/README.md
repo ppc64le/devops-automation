@@ -21,7 +21,7 @@ the container-based web application can talk to the AIX VM.
 To run the example, you will need to:
 
 1. Clone this Git repository
-2. [Download and configure](https://github.com/IBM-Cloud/terraform-provider-ibm) the IBM Cloud Terraform provider (minimally v0.18.0 or later)
+2. [Download and configure](https://github.com/IBM-Cloud/terraform-provider-ibm) the IBM Cloud Terraform provider (minimally v1.44.0 or later)
 3. Obtain your [IBM Cloud API key](https://cloud.ibm.com) (needed for step #5)
 4. Upload your public SSH key to the IBM Power Virtual Server cloud (the name is needed for step #5)
 5. Update the variables.tf file to suit your needs
@@ -48,5 +48,5 @@ terraform destroy
 ```
 
 There is also a **camvariables.json** file available so that you can import this GitHub
-repository as an IBM Cloud Automation Manager (CAM) template, allowing you to quickly provision a Power
-Systems VM in the IBM Cloud via CAM.
+repository as an IBM Terraform Automation (formerly CAM) template, allowing you to quickly provision a Power
+Systems VM in the IBM Cloud via Cloud Pak for WatsonAIOps: Infrastructure Automation - Terraform Automation.
