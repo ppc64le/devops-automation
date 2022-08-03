@@ -1,19 +1,19 @@
 output "status" {
-    value = "${ibm_pi_instance.pvminstance.pi_instance_status}"
+  value = ibm_pi_instance.pvminstance.status
 }
 
-output "min_proc" {
-    value = "${ibm_pi_instance.pvminstance.pi_minproc}"
+output "processors" {
+  value = ibm_pi_instance.pvminstance.pi_processors
 }
 
 output "health_status" {
-    value = "${ibm_pi_instance.pvminstance.pi_health_status}"
+  value = ibm_pi_instance.pvminstance.health_status
 }
 
-output "ip_address" {
-    value = "${ibm_pi_instance.pvminstance.addresses}"
+output "network" {
+  value = ibm_pi_instance.pvminstance.pi_network
 }
 
 output "progress" {
-    value = "${ibm_pi_instance.pvminstance.pi_progress}"
+  value = ibm_pi_instance.pvminstance.pi_progress
 }
