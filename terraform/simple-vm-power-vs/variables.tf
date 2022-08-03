@@ -4,13 +4,13 @@ variable "ibmcloud_api_key" {
 
 variable "ibmcloud_region" {
     description = "Denotes which IBM Cloud region to connect to"
-    default     = "us-south"
+    default     = "mon"
 }
 
-#variable "ibmcloud_zone" {
-#    description = "Denotes the zone within the region to connect to (only needed for multi-zone regions--e.g., eu-de-1)"
-#    default     = "eu-de-1"
-#}
+variable "ibmcloud_zone" {
+    description = "Denotes the zone within the region to connect to (only needed for multi-zone regions--e.g., eu-de-1)"
+    default     = "mon01"
+}
 
 variable "vm_name" {
     description = "Name of the VM"
@@ -23,6 +23,7 @@ variable "vm_private_key_base64" {
 }
 
 variable "power_instance_id" {
+    # This is also known as the IBM Cloud PowerVS service GUID
     description = "Power Virtual Server instance ID associated with your IBM Cloud account (note that this is NOT the API key)"
 }
 
@@ -39,6 +40,11 @@ variable "processors" {
 variable "proc_type" {
     description = "Processor type for the LPAR - shared/dedicated"
     default     = "shared"
+}
+
+variable "storage_type" {
+    description = "The type of storage to attach to the LPAR (e.g., tier1/tier3)"
+    default     = "tier3"
 }
 
 variable "ssh_key_name" {
