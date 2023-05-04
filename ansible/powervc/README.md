@@ -18,7 +18,7 @@ Note: Use example files in [ansible_v2.8](ansible_v2.8/) when *not* using collec
 Authentication is handled by openstacksdk, which can be configured in many
 ways. See [Configuring OpenStack SDK Applications][3] for details.
 
-[1]: https://developer.ibm.com/components/ibm-power/tutorials/automating-powervc-using-ansible/
+[1]: https://developer.ibm.com/tutorials/automating-powervc-using-ansible/
 [2]: https://docs.ansible.com/ansible/latest/modules/os_server_module.html
 [3]: https://docs.openstack.org/openstacksdk/latest/user/config/configuration.html
 [4]: https://galaxy.ansible.com/openstack/cloud
