@@ -1,3 +1,5 @@
+export PS1=[$(hostname -s):$(whoami):'$PWD':]" "
+
 export PATH=$PATH:/usr/es/sbin/cluster
 export PATH=$PATH:/usr/es/sbin/cluster/sbin
 export PATH=$PATH:/usr/es/sbin/cluster/utilities

@@ -1,0 +1,6 @@
+collections:
+  - name: community.general
+    version: 6.5.0
+
+  - name: ibm.power_aix
+

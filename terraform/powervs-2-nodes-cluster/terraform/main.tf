@@ -57,7 +57,7 @@ resource "ibm_pi_volume" "caa_disk_2"{
 ###################################################################################
 resource "ibm_pi_instance" "node1" {
   pi_placement_group_id       = ibm_pi_placement_group.cluster_placement_group.placement_group_id
-  pi_affinity_policy          = "affinity"
+#  pi_affinity_policy          = "affinity"
   pi_affinity_volume          = ibm_pi_volume.caa_disk_1.volume_id
   pi_instance_name            = var.node1_instance_name
   pi_memory                   = var.memory
@@ -69,7 +69,7 @@ resource "ibm_pi_instance" "node1" {
   pi_sys_type                 = var.system_type
   pi_cloud_instance_id        = var.service_instance_id
   pi_pin_policy               = var.pin_policy
-  #pi_health_status            = "WARNING"
+#  pi_health_status            = "WARNING"
   pi_network {
     network_id                = data.ibm_pi_network.network.id
     ip_address                = var.node1_ip
@@ -90,8 +90,8 @@ resource "ibm_pi_instance" "node1" {
 resource "ibm_pi_instance" "node2" {
   depends_on                  = [ibm_pi_instance.node1]
   pi_placement_group_id       = ibm_pi_placement_group.cluster_placement_group.placement_group_id
-  pi_affinity_policy          = "affinity"
-  #pi_anti_affinity_instances  = [ibm_pi_instance.node1.instance_id]
+#  pi_affinity_policy          = "affinity"
+#  pi_anti_affinity_instances  = [ibm_pi_instance.node1.instance_id]
   pi_affinity_volume          = ibm_pi_volume.caa_disk_2.volume_id
   pi_instance_name            = var.node2_instance_name
   pi_memory                   = var.memory
@@ -103,7 +103,7 @@ resource "ibm_pi_instance" "node2" {
   pi_sys_type                 = var.system_type
   pi_cloud_instance_id        = var.service_instance_id
   pi_pin_policy               = var.pin_policy
-  #pi_health_status            = "WARNING"
+#  pi_health_status            = "WARNING"
   pi_network {
     network_id                = data.ibm_pi_network.network.id
     ip_address                = var.node2_ip
